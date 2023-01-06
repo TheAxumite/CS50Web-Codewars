@@ -1,39 +1,58 @@
 import string
-import re
-
+from django.shortcuts import render
 from . import util
+from django import forms
 
-converter_dict = {
-    '**': '<b>', 
-    '/n': '<br>',
-    '#': ['<h5>','</h5>']}
 
 def index(request):
-    html = []
-    print(html)
-    converted = ''
-    page = re.split('[\n]', util.get_entry('CSS'))
-    lines = len(page)
-     
-    for line in page:
-        for key, value in converter_dict.items():
-            if line:
-                if line[0] == key:
-                    hold = value[0] + line[1:] + value[1]
-                    if re.search(key, line[1:]):
-                        hold = hold.replace(key,value)
-                    html.append(hold)  
-    else:
-        html.append(line)
+    new = []
+    for link in util.list_entries():
+         new.append('<a href = "/wiki/' + link + '" </a>' + link)
     return render(request, "encyclopedia/index.html", {
-        "entries": util.list_entries()
+        "entries": new
+        })
+  
+
+def conversion(request, name):
+    return render(request, "encyclopedia/Entrypage.html", {"message":util.convert(name)
     })
 
 
+    
+def search(request):
+     if request.method == "POST":
+        form = request.POST.get("q")
+        if util.get_entry(form):
+            return render(request, "encyclopedia/Entrypage.html", {"message":util.convert(form) })
+        else:
+            new = []
+            for link in util.list_entries():
+                count = 0
+                for l in range(len(form)): 
+                    if form[l] in link:
+                        count += 1         
+                if (count/len(link) * 100) > 49:
+                    new.append('<a href = "/wiki/' + link + '" </a>' + link)  
+            return render(request, "encyclopedia/index.html", {
+                "entries": new
+                })
+  
+           
+def newpage(request):
+        if request.method == "POST":
+            form = request.POST.get("q")
+            title = request.POST.get("title")
+            print(form)
+            util.save_entry(title, form)
+            return render(request, "encyclopedia/Entrypage.html", {"message":util.convert(title)})
+        else:
+            return render(request, "encyclopedia/newpage.html")
 
-def convert(request):
-    if request.method == "POST":
-        page = util.get_entry(request.POST)
-    else:
-        return render(request,"encyclopedia/errorpage.html",
-            {"message":request.POST})
+        
+
+       
+
+       
+
+
+   

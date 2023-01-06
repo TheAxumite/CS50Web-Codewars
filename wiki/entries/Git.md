@@ -1,7 +1,6 @@
-# Git
+##### Django
 
-Git is a version control tool that can be used to keep track of versions of a software project.
+Django is a web framework written using [Python] (/wiki/Python) that allows for the design of web applications that 
+generate [HTML] (/wiki/HTML) dynamically.
 
-## GitHub
-
-GitHub is an online service for hosting git repositories.
+## Trust
