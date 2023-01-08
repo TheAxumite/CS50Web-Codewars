@@ -5,10 +5,17 @@
 {% endblock %}
 
 {% block body %}
-    
+    <div>
+        <form action="{%  url 'edit' %}" method = "post" class="edit_button">
+            <input  type="hidden" name = "q" value= {{ title }}>
+            {% csrf_token %}
+            <input type="submit" value="Edit"> 
+        </form>
+      <br>
+    </div>
     {% for ht in message %}
-         {{ ht |safe}} 
-        {% endfor %}
+    {{ ht |safe}} 
+    {% endfor %}
 
-        
+    
 {% endblock %}

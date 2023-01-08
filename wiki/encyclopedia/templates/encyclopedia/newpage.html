@@ -6,7 +6,14 @@
 
 {% block body %}
     <h1>Enter New Markup</h1>
-
+    {% if messages %}
+    <form action="{%  url 'newpage' %}" method = "post">
+        <p>Title: <input class="title" type="text" name="title" placeholder={{ Title }}></p>
+         <textarea id="w3review" name="q">{{ messages }}</textarea>
+         <input type="submit" value="Submit">
+         {% csrf_token %}
+       </form>
+    {% else %}
     <form action="{%  url 'newpage' %}" method = "post">
        <p>Title: <input class="title" type="text" name="title" placeholder="Title"></p>
         <textarea id="w3review" name="q"></textarea>
@@ -14,6 +21,6 @@
         {% csrf_token %}
       </form>
 
-
+      {% endif %}
         
 {% endblock %}

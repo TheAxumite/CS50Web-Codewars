@@ -2,6 +2,7 @@ import re
 
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
+import string
 
 
 def list_entries():
@@ -70,6 +71,8 @@ def convert(title):
     for line in page:
         #checks to see if the line is empty 
         if line: 
+            line = line + '<br>' 
+           
             #used to keep track of the words processed in the line. Resets to zero when a iterating a new line
             length = 0  
             # a list object of thee words contained in the line
@@ -99,23 +102,28 @@ def convert(title):
                                 else:
                                     new_word = word.replace(str(key), converter_dict[key][1],1)
                                 if length == length_of_words:
-                                    new_word = new_word + '</p>'
+                                    new_word = new_word
                                 new_sentence.append(new_word)
                             if all_markup_found == 2 and count == 1:
                                 new_word = word.replace(str(key), converter_dict[key][0],1)
                                 new_word = new_word.replace(str(key), converter_dict[key][1],1)
                                 if length == length_of_words:
-                                    new_word = new_word + '</p>'
+                                    new_word = new_word
+                                 
                                 new_sentence.append(new_word)     
                 elif not re.search(pattern_3, word):
                     new_sentence.append(word)
-                if re.search(pattern_3, word) is not None:
-                    if words[length][0] == '(' and  words[length][1] == '/' or 'https' in words[length] :
-                        switch_value = '<a href ="' + words[length].strip("()") + '">' + " " + words[length-1].strip("[]") + '</a>'
-                        if length == length_of_words:
-                            new_sentence.append(switch_value + '</p>')     
+                if re.search(pattern_3, word) is not None and re.search(pattern_3, word) is not string.whitespace:
+                    word = word.split(")")
+                    word[0]=  word[0] + ")"
+                    if '(' and ')' and '/'  in word[0] or 'https' in word[0]:
+                        switch_value = '<a href ="' + word[0].strip("()") + '">' + " " + words[length-2].strip("[]") + '</a>' + word[1]
+                        if length + 2 == length_of_words:
+                            new_sentence.append(switch_value + '</p>')
+                                
                         else:
                             new_sentence.append(switch_value)  
+                            
         else:
             new_sentence.append('<p></p>')
 

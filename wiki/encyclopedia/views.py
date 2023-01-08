@@ -1,7 +1,9 @@
 import string
+from random import choice
 from django.shortcuts import render
 from . import util
 from django import forms
+
 
 
 def index(request):
@@ -14,8 +16,8 @@ def index(request):
   
 
 def conversion(request, name):
-    return render(request, "encyclopedia/Entrypage.html", {"message":util.convert(name)
-    })
+    print(name)
+    return render(request, "encyclopedia/Entrypage.html", {"message":util.convert(name), "title": name })
 
 
     
@@ -42,13 +44,26 @@ def newpage(request):
         if request.method == "POST":
             form = request.POST.get("q")
             title = request.POST.get("title")
-            print(form)
+            print(title)
             util.save_entry(title, form)
-            return render(request, "encyclopedia/Entrypage.html", {"message":util.convert(title)})
+           
+            return render(request, "encyclopedia/Entrypage.html", {"message":util.convert(title) })
         else:
             return render(request, "encyclopedia/newpage.html")
 
-        
+
+def edit(request):
+    if request.method == "POST":
+        form = request.POST.get("q")
+        if util.get_entry(form):
+            return render(request, "encyclopedia/newpage.html", {"messages": util.get_entry(form), "Title": form })
+
+
+def random(request):
+    return render(request, "encyclopedia/Entrypage.html", {"message": util.convert(choice(util.list_entries()))})
+
+   
+    
 
        
 
