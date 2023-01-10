@@ -1,5 +1,5 @@
 
-lst = "aa11"
+lst = "rararararaarararararararararrarararararararr321aaaaaaa"
 list = [] 
 list_2 = []
 greater = False 
