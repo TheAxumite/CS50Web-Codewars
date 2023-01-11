@@ -1,0 +1,48 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+{% if user.is_authenticated %}
+
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <div class="form-field">
+      <label for="{{ form.title.id_for_label }}">{{ form.title.label }}:</label>
+      {{ form.title }}
+      {% if form.title.errors %}
+      <span class="form-error">{{ form.title.errors.0 }}</span>
+      {% endif %}
+  </div>
+  <div class="form-field">
+      <label for="{{ form.description.id_for_label }}">{{ form.description.label }}:</label>
+      {{ form.description }}
+  </div>
+  <div class="form-field">
+      <label for="{{ form.starting_bid.id_for_label }}">{{ form.starting_bid.label }}:</label>
+      {{ form.starting_bid }}
+      {% if form.starting_bid.errors %}
+      <span class="form-error">{{ form.starting_bid.errors.0 }}</span>
+      {% endif %}
+  </div>
+  <div class="form-field">
+      <label for="{{ form.image_file.id_for_label }}">{{ form.image_file.label }}:</label>
+      {{ form.image_file }}
+  </div>
+  <div class="form-field">
+      <label for="{{ form.image_url.id_for_label }}">{{ form.image_url.label }}:</label>
+      {{ form.image_url }}
+      {% if form.image_url.errors %}
+      <span class="form-error">{{ form.image_url.errors.0 }}</span>
+      {% endif %}
+    </div>
+    <div class="form-field">
+        <label for="{{ form.category.id_for_label }}">{{ form.category.label }}:</label>
+        {{ form.category }}
+        {% if form.category.errors %}
+        <span class="form-error">{{ form.category.errors.0 }}</span>
+        {% endif %}
+    </div>
+    <input type="submit" value="Submit">
+</form>
+  {% endif %}
+  
+  {% endblock %}

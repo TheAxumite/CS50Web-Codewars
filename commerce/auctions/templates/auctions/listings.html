@@ -1,0 +1,26 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+
+{% if user.is_authenticated %}
+<div class="auction-item">
+    <h2 class="auction-title">{{ item.name }}</h2>
+    <div class="auction-image">
+      <img src="{{ item.image_url }}" alt="{{ item.name }}">
+    </div>
+    <div class="auction-description">{{ item.description }}</div>
+    <div class="auction-details">
+      <div class="auction-current-bid">Current Bid: ${{ item.current_bid }}</div>
+      <div class="auction-end-time">End Time: {{ item.end_time }}</div>
+      <form action="{% url 'place_bid' %}" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="item_id" value="{{ item.id }}">
+        <label for="bid-amount">Enter your bid:</label>
+        <input type="number" name="bid_amount" id="bid-amount" min="{{ item.current_bid }}">
+        <input type="submit" value="Place Bid">
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
+  {% endblock %}

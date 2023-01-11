@@ -1,0 +1,26 @@
+body {
+    padding: 10px;
+}
+.form-field {
+    margin-bottom: 20px;
+}
+
+.form-field label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.form-field input[type="text"], .form-field textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.form-field .form-error {
+    color: red;
+    font-size: 12px;
+    margin-top: 5px;
+}
