@@ -4,12 +4,12 @@
     <h2>Active Listings</h2>
 
     <ul>
-        {% for listings in active_listing %}
+        {% for item in active_listing %}
         <li>
-           <a href="{% url 'listings' listings.id %}">
-             {{ listing.name }}: {{ listings.description}} </a>
+           <a href="{% url 'listings' item.id %}">
+             {{ item.title }}: {{ item.description}} </a>
        </li>
-       <img src= "{{ item.image_url }}" alt="Example image" width="300">
+       <img src= "media/{{ item.image_file }}" alt="Example image" width="300">
         {% endfor %}
     </ul>
 {% endblock %}

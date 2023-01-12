@@ -8,18 +8,27 @@ class User(AbstractUser):
 
 class Item(models.Model):
     seller = models.ForeignKey(User, on_delete=models.CASCADE, related_name="seller")
-    name = models.CharField(max_length=100)
+    title = models.CharField(max_length=100)
     description = models.TextField()
     starting_price = models.DecimalField(max_digits=10, decimal_places=2)
-    end_date = models.DateTimeField()
-    image = models.ImageField(upload_to='items/', null=True, blank=True)
+    image_file = models.ImageField(upload_to='items/', null=True, blank=True)
+    image_url = models.URLField(blank=True)
+    category = models.CharField(max_length=100)
 
-    @property
-    def image_url(self):
-        if self.image:
-            return self.image.url
-        else:
-            return None
+    
+
+    def create_item(name, description, starting_price, image_file, image_url, category, seller):
+        item = Item(title=name,
+                    description=description,
+                    starting_price=starting_price,
+                    image_url=image_url,
+                    image_file=image_file,
+                    category=category,
+                    seller=seller)
+        item.image_file = image_file
+        item.save()
+        return item
+
 
 
 class Bid(models.Model):

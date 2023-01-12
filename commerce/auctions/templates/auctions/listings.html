@@ -4,13 +4,13 @@
 
 {% if user.is_authenticated %}
 <div class="auction-item">
-    <h2 class="auction-title">{{ item.name }}</h2>
+    <h2 class="auction-title">Listing: {{ item.title }}</h2>
     <div class="auction-image">
-      <img src="{{ item.image_url }}" alt="{{ item.name }}">
+    <img src="media/{{ item.image_file }}" alt="{{ item.description }}">
     </div>
     <div class="auction-description">{{ item.description }}</div>
     <div class="auction-details">
-      <div class="auction-current-bid">Current Bid: ${{ item.current_bid }}</div>
+      <div class="auction-current-bid">Starting Bid: ${{ item.starting_price }}</div>
       <div class="auction-end-time">End Time: {{ item.end_time }}</div>
       <form action="{% url 'place_bid' %}" method="post">
         {% csrf_token %}
