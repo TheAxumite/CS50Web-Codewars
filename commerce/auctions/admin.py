@@ -5,4 +5,6 @@ from. models import *
 
 admin.site.register(Item)
 admin.site.register(Bid)
+admin.site.register(WatchList)
 admin.site.register(Comments)
+admin.site.register(User)

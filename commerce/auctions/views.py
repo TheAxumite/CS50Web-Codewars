@@ -1,7 +1,7 @@
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.urls import reverse
 from .helpers import create_item
 from django import forms
@@ -27,7 +27,6 @@ def index(request):
 
 def listing(request, item_id):
      file = Item.objects.get(pk=item_id)
-     print(file.image_file)
      return render(request, "auctions/listings.html", 
     {"item": Item.objects.get(pk=item_id)})
 
@@ -84,6 +83,8 @@ def register(request):
     else:
         return render(request, "auctions/register.html")
 
+
+
 def post_item(request):
     if request.method == "POST":
         form = new_listing_form(request.POST, request.FILES)
@@ -97,3 +98,32 @@ def post_item(request):
     else:
         return render(request, "auctions/new_listing.html",
         {"form": new_listing_form()})
+
+
+
+def add_to_watchlist(request):
+    if request.method == "POST":
+        item_id = request.POST["item_id"]
+        try:
+            WatchList.objects.get(user = request.user, item = item_id)
+            return render(request,"auctions/listings.html", {"message": "Already added to watchlist", "item": Item.objects.get(pk=item_id)})
+        except WatchList.DoesNotExist:
+            WatchList.add_watchlist(request.user, item_id)
+            watchlist_obj = WatchList.objects.get(user=request.user)
+        return render(request, "auctions/watchlist.html", {"list": watchlist_obj.item.all()})
+
+
+def watchlist(request):
+    try:
+        watchlist_obj = WatchList.objects.get(user=request.user)
+        return render(request, "auctions/watchlist.html", {"list": watchlist_obj.item.all()})
+    except WatchList.DoesNotExist:
+        return render(request, "auctions/watchlist.html", {"message": "You haven't added any items yet."})
+
+def remove_watchlist(request):
+     if request.method == "POST":
+        item = request.POST["item_id"]
+        print(item)
+        watchlist = WatchList.objects.get(user=request.user)
+        watchlist.item.remove(item)
+        return redirect("watchlist")
