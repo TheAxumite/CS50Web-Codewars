@@ -6,6 +6,7 @@ from django.urls import reverse
 from .helpers import create_item
 from django import forms
 from .models import *
+from django.db.models import Max
 
 
 
@@ -16,7 +17,7 @@ class new_listing_form(forms.Form):
     starting_bid = forms.DecimalField(max_digits=10, decimal_places=2, widget=forms.TextInput(attrs={'class': 'money-input'}))
     image_file = forms.ImageField(required=False, widget=forms.ClearableFileInput(attrs={'class': 'image-input'}))
     image_url = forms.CharField(label="Image URL")
-    category = forms.MultipleChoiceField(choices=(("Fashion","Fashion"), ("Toys","Toys"), ("Electronics","Electronics"), ("Home","Home"), ("Other","Other")), widget=forms.SelectMultiple)
+    category = forms.ChoiceField(choices=(("Fashion","Fashion"), ("Toys","Toys"), ("Electronics","Electronics"), ("Home","Home"), ("Other","Other")), widget=forms.Select)
     
     
 
@@ -27,8 +28,16 @@ def index(request):
 
 def listing(request, item_id):
      file = Item.objects.get(pk=item_id)
+     try:
+        Bid.objects.get(item=item_id,is_winning = True)
+        current_bid = Bid.objects.get(item=item_id,is_winning = True)
+     except Bid.DoesNotExist:
+        current_bid = None
      return render(request, "auctions/listings.html", 
-    {"item": Item.objects.get(pk=item_id)})
+    {"item": file,
+    "current_bid": current_bid,
+    "seller": request.user == file.seller, 
+    "bid_closed": file.closed}) #assign a boolean value to seller indicating whether the current user is the seller of the file object.
 
 
 def login_view(request):
@@ -120,10 +129,70 @@ def watchlist(request):
     except WatchList.DoesNotExist:
         return render(request, "auctions/watchlist.html", {"message": "You haven't added any items yet."})
 
+
+
 def remove_watchlist(request):
      if request.method == "POST":
         item = request.POST["item_id"]
-        print(item)
         watchlist = WatchList.objects.get(user=request.user)
         watchlist.item.remove(item)
         return redirect("watchlist")
+
+def bid(request):
+    if request.method == "POST":
+        bid_item = request.POST["item_id"]
+        amount = request.POST["bid_amount"]
+        seller_name = Item.objects.get(pk=bid_item)
+        starting_price = request.POST["starting_price"]
+        try:
+           Bid.objects.filter(item=bid_item)
+           current_bid = Bid.objects.get(item=bid_item,is_winning = True)
+           highest_bid = Bid.objects.filter(item=bid_item).aggregate(Max('amount'))
+           latest_bid = Bid.objects.filter(item=bid_item).latest('amount')
+           if highest_bid['amount__max'] is None or highest_bid['amount__max'] <= float(amount):
+            Bid.change_winning(bid_item)
+            is_winning = True
+            Bid.make_bid(request.user, Item.objects.get(pk=bid_item), amount, is_winning)
+            current_bid = Bid.objects.get(item=bid_item,is_winning = True)
+            return render(request, "auctions/listings.html", 
+            {"item": seller_name,
+            "current_bid": current_bid,
+             "seller": request.user == seller_name.seller,
+            "bid_closed": seller_name.closed,
+            "message_2": "You have made a Bid!"})
+           else:
+            return render(request, "auctions/listings.html", 
+            {"item": seller_name,
+            "current_bid": current_bid,
+             "seller": request.user == seller_name.seller,
+            "bid_closed": seller_name.closed,
+            "message": "Your Current bid is to low"})
+        except Bid.DoesNotExist:
+            item = Item.objects.get(pk=bid_item)
+            is_winning = True
+            Bid.make_bid(request.user, item, amount, is_winning)
+            return render(request, "auctions/listings.html", 
+            {"item": seller_name,
+            "current_bid": amount,
+           "seller": request.user == seller_name.seller,
+            "bid_closed": seller_name.closed,
+            "message_2": "You have made a Bid!"})
+
+def close_bid(request):
+    if request.method == "POST":
+        item = request.POST["close_auction"]
+        seller_name = Item.objects.get(pk=item)
+        Item.close_item(item)
+        return render(request, "auctions/listings.html", 
+            {"item": seller_name,
+            "current_bid": Bid.objects.get(item=item,is_winning = True),
+            "seller": request.user == seller_name.seller,
+            "bid_closed": seller_name.closed,
+            "message_2": "Bid has been closed"})
+        
+
+
+      
+    
+
+

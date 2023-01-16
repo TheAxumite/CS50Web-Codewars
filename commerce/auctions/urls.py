@@ -12,10 +12,12 @@ urlpatterns = [
     path("register", views.register, name="register"),
     path("<int:item_id>", views.listing, name="listings"),
     path("post_item", views.post_item, name="post_item"),
-    path("place_bid", views.post_item, name="place_bid"),
+    path("place_bid", views.bid, name="place_bid"),
     path("add_watchlist", views.add_to_watchlist, name="add_watchlist"),
     path("watchlist", views.watchlist, name="watchlist"),
-    path("remove_watchlist", views.remove_watchlist, name="remove_watchlist")
+    path("remove_watchlist", views.remove_watchlist, name="remove_watchlist"),
+    path("close_auction", views.close_bid, name="close_auction")
+
 
    
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

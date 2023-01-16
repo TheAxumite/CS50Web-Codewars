@@ -15,8 +15,8 @@ class Item(models.Model):
     image_file = models.ImageField(upload_to='items/', null=True, blank=True)
     image_url = models.URLField(blank=True)
     category = models.CharField(max_length=100)
-
-    
+    creation_date = models.DateTimeField(auto_now_add=True)
+    closed  = models.BooleanField(default=False)
 
     def create_item(name, description, starting_price, image_file, image_url, category, seller):
         item = Item(title=name,
@@ -28,7 +28,14 @@ class Item(models.Model):
                     seller=seller)
         item.image_file = image_file
         item.save()
+        print("work")
         return item
+
+    def close_item(item_id):
+        close_item = Item.objects.get(pk=item_id)
+        close_item.closed = True
+        close_item.save()
+
 
 
 
@@ -39,14 +46,24 @@ class Bid(models.Model):
     date_submitted = models.DateTimeField(auto_now_add=True)
     is_winning = models.BooleanField(default=False)
 
+    def make_bid(user, item, bid, winning):
+        bid = Bid(user=user, item=item, amount=bid, is_winning=winning)
+        bid.save()
+        return bid
+
+    def change_winning(item):
+        bid_object = Bid.objects.filter(item=item)
+        for bid in bid_object:
+            bid.is_winning = False
+            bid.save()
+
 
 
 
 
 class WatchList(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="watcher")
-    item = models.ManyToManyField(Item, blank=True, related_name= "items")
-
+    item = models.ManyToManyField(Item, blank=True, related_name= "item")
 
     def add_watchlist(user, item):
           watchlist = WatchList.objects.get_or_create(user=user)[0]

@@ -3,34 +3,71 @@
 {% block body %}
 
 {% if user.is_authenticated %}
-{% if message %}
-  
-<h5>Error: {{ message }}</h5>
-{% endif %}
-<div class="auction-item">
-    <h2 class="auction-title">Listing: {{ item.title }}</h2>
-    <div class="auction-image">
-    <img src="media/{{ item.image_file }}" alt="{{ item.description }}">
-    </div>
-    <div class="auction-description">{{ item.description }}</div>
-    <div class="auction-details">
-      <div class="auction-current-bid">Starting Bid: ${{ item.starting_price }}</div>
-      <div class="auction-end-time">End Time: {{ item.end_time }}</div>
-      <form action="{% url 'place_bid' %}" method="post">
-        {% csrf_token %}
-        <input type="hidden" name="item_id" value="{{ item.id }}">
-        <label for="bid-amount">Enter your bid:</label>
-        <input type="number" name="bid_amount" id="bid-amount" min="{{ item.current_bid }}">
-        <input type="submit" value="Place Bid">
-      </form>
 
-      <form action="{% url 'add_watchlist' %}" method="post">
-        {% csrf_token %}
-        <input type="hidden" name="item_id" value="{{ item.id }}">
-        <input type="submit" value="add watchlist">
-      </form>
-    </div>
+<div class="container">
+    {% if message %}
+        <div class="alert alert-danger">
+            <strong>Error:</strong> {{ message }}
+            <br>
+            {{ message_2 }}
+        </div>
+    {% endif %}
+    {% if message_2 %}
+    <div class="container">
+      <div class="alert alert-success">
+        {{ message_2 }}
+      </div>
+      {% endif %}
+    <div class="card my-5">
+        <div class="row">
+            <div class="col-md-5">
+                <img class="card-img-top" src="media/{{ item.image_file }}" alt="{{ item.description }}">
+            </div>
+            <div class="col-md-7">
+                <div class="card-body">
+                    <h2 class="card-title">Listing: {{ item.title }} </h2>
+                    <p class="card-text">{{ item.description }}</p>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">Starting Bid: ${{ item.starting_price }}</li>
+                    <li class="list-group-item">
+                        Highest Bid: 
+                        {% if current_bid != None %} 
+                            {{ current_bid.amount }} 
+                        {% else %} 
+                            $0.00 
+                        {% endif %}
+                    </li>
+                </ul>
+                <div class="card-body">
+                    {% if bid_closed == True %}
+                        <div class="alert alert-danger">Bidding has closed. Item has been sold for ${{ current_bid.amount }}</div>
+                    {% else %}
+                        <form action="{% url 'place_bid' %}" method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="item_id" value="{{ item.id }}">
+                            <input type="hidden" name="starting_price" value="{{ item.starting_price }}">
+                            <div class="form-group">
+                                <label for="bid-amount">Enter your bid:</label>
+                                <input type="number" name="bid_amount" id="bid-amount" min="{{ item.current_bid }}" class="form-control">
+                            </div>
+                            <input type="submit" value="Place Bid" class="btn btn-primary">
+                        </form>
+                        <form action="{% url 'add_watchlist' %}" method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="item_id" value="{{ item.id }}">
+                            <input type="submit" value="Add to Watchlist" class="btn btn-secondary">
+                        </form>
+                        {% if seller == True and bid_closed == False %}
+          <form action="{% url 'close_auction' %}" method="post">
+              {% csrf_token %}
+              <input type="hidden" name="close_auction" value="{{ item.id }}">
+              <input type="submit" value="Close Auction">
+          </form>
+          {% endif %}
+      </div>
   </div>
-
+</div>
+   {% endif %}
    {% endif %}
   {% endblock %}
