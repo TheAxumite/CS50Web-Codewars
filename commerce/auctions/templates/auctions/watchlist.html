@@ -7,13 +7,15 @@
       <div class="watchlist-items">
         {% for i in list %}
           <div class="watchlist-item d-flex align-items-center">
-            <a href="{% url 'listings' i.id %}" class="watchlist-item-title mr-3">{{ i.title }}</a>
             <form action="{% url 'remove_watchlist' %}" method="post" class="watchlist-remove-form">
-              {% csrf_token %}
-              <input type="hidden" name="item_id" value="{{ i.id }}">
-              <input type="submit" value="Remove" class="watchlist-remove-button btn btn-danger">
-            </form>
+                {% csrf_token %}
+                <input type="hidden" name="item_id" value="{{ i.id }}">
+                <input type="submit" value="Remove" class="watchlist-remove-button btn btn-danger">
+            
+              </form>
+            <a href="{% url 'listings' i.id %}" class="watchlist-item-title mr-3">{{ i.title }}</a>
           </div>
+          <br>
         {% endfor %}
       </div>
       {% if message %}

@@ -20,8 +20,7 @@ class new_listing_form(forms.Form):
     category = forms.ChoiceField(choices=(("Fashion","Fashion"), ("Toys","Toys"), ("Electronics","Electronics"), ("Home","Home"), ("Other","Other")), widget=forms.Select)
     
     
-
-    
+ 
 def index(request):
     return render(request, "auctions/index.html", 
     {"active_listing": Item.objects.all()})
@@ -141,6 +140,7 @@ def remove_watchlist(request):
 def bid(request):
     if request.method == "POST":
         bid_item = request.POST["item_id"]
+        starting_price = request.POST["starting_price"]
         amount = request.POST["bid_amount"]
         seller_name = Item.objects.get(pk=bid_item)
         starting_price = request.POST["starting_price"]
@@ -149,7 +149,7 @@ def bid(request):
            current_bid = Bid.objects.get(item=bid_item,is_winning = True)
            highest_bid = Bid.objects.filter(item=bid_item).aggregate(Max('amount'))
            latest_bid = Bid.objects.filter(item=bid_item).latest('amount')
-           if highest_bid['amount__max'] is None or highest_bid['amount__max'] <= float(amount):
+           if highest_bid['amount__max'] is None or highest_bid['amount__max'] <= float(amount) and float(amount) > float(starting_price):
             Bid.change_winning(bid_item)
             is_winning = True
             Bid.make_bid(request.user, Item.objects.get(pk=bid_item), amount, is_winning)

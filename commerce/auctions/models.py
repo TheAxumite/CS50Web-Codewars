@@ -37,8 +37,6 @@ class Item(models.Model):
         close_item.save()
 
 
-
-
 class Bid(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="bidder")
     item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name="auction_item")
@@ -58,9 +56,6 @@ class Bid(models.Model):
             bid.save()
 
 
-
-
-
 class WatchList(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="watcher")
     item = models.ManyToManyField(Item, blank=True, related_name= "item")
@@ -70,9 +65,6 @@ class WatchList(models.Model):
           watchlist.item.add(item)
           watchlist.save()
           return watchlist
-
-
-
 
 class Comments(models.Model):
     comment = models.TextField()

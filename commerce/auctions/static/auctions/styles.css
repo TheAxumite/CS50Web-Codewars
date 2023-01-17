@@ -119,3 +119,8 @@ form {
 .row{
     padding: 10px;
 }
+
+.watchlist-remove{
+    padding-left: 10%;
+    display: inline;
+}
