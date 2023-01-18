@@ -28,7 +28,6 @@ class Item(models.Model):
                     seller=seller)
         item.image_file = image_file
         item.save()
-        print("work")
         return item
 
     def close_item(item_id):
@@ -71,4 +70,9 @@ class Comments(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     comment_date = models.DateTimeField(auto_now=True)
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
+
+    def post_comment(comment, user, item):
+        comment = Comments(comment=comment, user=user, item=item)
+        comment.save()
+        return comment
 

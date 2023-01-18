@@ -49,7 +49,7 @@
                             <input type="hidden" name="starting_price" value="{{ item.starting_price }}">
                             <div class="form-group">
                                 <label for="bid-amount">Enter your bid:</label>
-                                <input type="number" name="bid_amount" id="bid-amount" min="{{ item.current_bid }}" class="form-control">
+                                <input type="number" name="bid_amount" id="bid-amount" min="{{ item.current_bid }}" class="form-control" required>
                             </div>
                             <input type="submit" value="Place Bid" class="btn btn-primary">
                         </form>
@@ -68,6 +68,34 @@
       </div>
   </div>
 </div>
+</div>
    {% endif %}
    {% endif %}
+
+   <div class="container" >
+       <form action="{%  url 'post_comment' %}" method="post" enctype="multipart/form-data"  autocomplete="off">
+           {% csrf_token %}
+           <div class="form-group">
+               <label for="{{ form.comment.id_for_label }}">{{ form.comment.label }}:</label>
+               <textarea rows="3" cols="50" name="{{ form.comment.name }}" class="form-control"></textarea>
+           </div>
+           <input type="hidden" name="token" value="{{current_time}}">
+           <input type="hidden" name="{{ form.item.name }}" value="{{ item.id }}">
+           <input type="submit" value="Submit" class="btn btn-primary">
+       </form>
+   </div>
+
+<div class="container my-5">
+    <h2>Comments</h2>
+    <ul>
+        {% for item in comment_list %}
+            <li>
+                {{ item.comment }} 
+                <br>
+                <strong>Posted By:</strong> {{ item.user}} on {{ item.comment_date }}
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+
   {% endblock %}

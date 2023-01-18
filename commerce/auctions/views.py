@@ -6,37 +6,49 @@ from django.urls import reverse
 from .helpers import create_item
 from django import forms
 from .models import *
-from django.db.models import Max
-
+from django.db.models import *
+import string 
 
 
 
 class new_listing_form(forms.Form):
     title = forms.CharField(label="Title")
-    description = forms.CharField(widget=forms.Textarea, required=False)
-    starting_bid = forms.DecimalField(max_digits=10, decimal_places=2, widget=forms.TextInput(attrs={'class': 'money-input'}))
+    description = forms.CharField(widget=forms.Textarea, required=True)
+    starting_bid = forms.DecimalField(max_digits=10, decimal_places=2, widget=forms.TextInput(attrs={'class': 'money-input',}),required=True)
     image_file = forms.ImageField(required=False, widget=forms.ClearableFileInput(attrs={'class': 'image-input'}))
     image_url = forms.CharField(label="Image URL")
     category = forms.ChoiceField(choices=(("Fashion","Fashion"), ("Toys","Toys"), ("Electronics","Electronics"), ("Home","Home"), ("Other","Other")), widget=forms.Select)
     
-    
+class comments(forms.Form):
+    comment = forms.CharField(widget=forms.Textarea, required=True)
+    item = forms.CharField(widget=forms.HiddenInput)
  
 def index(request):
     return render(request, "auctions/index.html", 
-    {"active_listing": Item.objects.all()})
+    {"active_listing": Item.objects.filter(closed=False)})
 
 def listing(request, item_id):
+     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
      file = Item.objects.get(pk=item_id)
      try:
         Bid.objects.get(item=item_id,is_winning = True)
         current_bid = Bid.objects.get(item=item_id,is_winning = True)
      except Bid.DoesNotExist:
         current_bid = None
+     try:
+    
+        comment_list = Comments.objects.filter(item = item_id)
+     except Comments.DoesNotExist:
+        comment_list = None
      return render(request, "auctions/listings.html", 
     {"item": file,
     "current_bid": current_bid,
     "seller": request.user == file.seller, 
-    "bid_closed": file.closed}) #assign a boolean value to seller indicating whether the current user is the seller of the file object.
+    #assign a boolean value to seller indicating whether the current user is the seller of the file object.
+    "bid_closed": file.closed,
+    "form": comments(),
+    "comment_list": comment_list,
+    'current_time': current_time}) 
 
 
 def login_view(request):
@@ -124,7 +136,11 @@ def add_to_watchlist(request):
 def watchlist(request):
     try:
         watchlist_obj = WatchList.objects.get(user=request.user)
-        return render(request, "auctions/watchlist.html", {"list": watchlist_obj.item.all()})
+        count = watchlist_obj.item.count()
+        if count > 0:
+            return render(request, "auctions/watchlist.html", {"list": watchlist_obj.item.all()})
+        else:
+             return render(request, "auctions/watchlist.html", {"message": "You haven't added any items yet."})
     except WatchList.DoesNotExist:
         return render(request, "auctions/watchlist.html", {"message": "You haven't added any items yet."})
 
@@ -152,6 +168,8 @@ def bid(request):
            if highest_bid['amount__max'] is None or highest_bid['amount__max'] <= float(amount) and float(amount) > float(starting_price):
             Bid.change_winning(bid_item)
             is_winning = True
+            categories = Item.objects.values('category').distinct()
+            all_open_items = Item.objects.values('pk').filter(closed=False)
             Bid.make_bid(request.user, Item.objects.get(pk=bid_item), amount, is_winning)
             current_bid = Bid.objects.get(item=bid_item,is_winning = True)
             return render(request, "auctions/listings.html", 
@@ -178,18 +196,43 @@ def bid(request):
             "bid_closed": seller_name.closed,
             "message_2": "You have made a Bid!"})
 
-def close_bid(request):
+def close_bid(request): 
     if request.method == "POST":
         item = request.POST["close_auction"]
         seller_name = Item.objects.get(pk=item)
         Item.close_item(item)
-        return render(request, "auctions/listings.html", 
-            {"item": seller_name,
-            "current_bid": Bid.objects.get(item=item,is_winning = True),
-            "seller": request.user == seller_name.seller,
-            "bid_closed": seller_name.closed,
-            "message_2": "Bid has been closed"})
+        return redirect('listings', item_id = item,
+        message_2 = "Bid has been closed")
         
+
+def categories(request):
+    all_open_items = Item.objects.values('category', 'pk', 'title').filter(closed=False)
+    categories = {}
+    for item in all_open_items:
+        category = item['category']
+        pk = item['pk']
+        title = item['title']
+        if category in categories:
+            categories[category].append(pk, title)      
+        else:
+            categories[category] = (pk,title)    
+    return render(request, "auctions/category.html", 
+        {"categories": categories
+         })
+
+                
+def comment(request):
+    if request.method == "POST":
+        form = comments(request.POST, request.FILES)
+        if form.is_valid():
+            item = form.cleaned_data['item']
+            Comments.post_comment(form.cleaned_data['comment'], request.user, Item.objects.get(pk=form.cleaned_data['item']))
+            return redirect('listings', item_id = item)
+        else:
+            item = form.cleaned_data['item']
+            return redirect('listings',item_id = item)
+
+
 
 
       
