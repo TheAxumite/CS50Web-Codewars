@@ -1,6 +1,6 @@
-objects.all() - Retrieves all the records from the database for a particular model.\
-objects.filter(<fieldname>=<value>) - Retrieves a queryset of records from the database that match the specified field/value pair.\
-objects.exclude(<fieldname>=<value>) - Retrieves a queryset of records from the database that do not match the specified field/value pair.\
+**objects.all()** - Retrieves all the records from the database for a particular model.\
+**objects.filter(<fieldname>=<value>)** - Retrieves a queryset of records from the database that match the specified field/value pair.\
+**objects.exclude(<fieldname>=<value>)** - Retrieves a queryset of records from the database that do not match the specified field/value pair.\
 objects.get(<fieldname>=<value>) - Retrieves a single record from the database that matches the specified field/value pair.\
 save() - Saves a record to the database.\
 delete() - Deletes a record from the database.\
