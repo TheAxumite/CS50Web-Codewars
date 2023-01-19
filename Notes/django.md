@@ -10,9 +10,7 @@ objects.values() - Retrieves specified fields from the database, return them in 
 objects.values_list() - Retrieves specified fields from the database, return them in a tuple format
 
 
-
-
-Here are some important methods for utilizing Django model fields:
+# Utilizing Django Model Fields
 
 field.default - the default value of the field
 field.primary_key - whether the field is a primary key
