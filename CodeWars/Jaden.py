@@ -1,10 +1,10 @@
 jaden = ''
-string = "How can mirrors be real if our eyes aren't real"
+string = "How can mirrors be real if our 5 eyes aren't real"
 counter = 0
 for letter in string:
-    if counter > 0:
+    if counter > -1:
         jaden += letter.upper()
-        counter = 0
+        counter = -1
     else:
         if letter.isalpha:
             jaden += letter

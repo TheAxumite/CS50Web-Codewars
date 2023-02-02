@@ -6,50 +6,52 @@
 
 <div class="container">
     {% if message %}
-        <div class="alert alert-danger">
-            <strong>Error:</strong> {{ message }}
-            <br>
-            {{ message_2 }}
-        </div>
+    <div class="alert alert-danger">
+        <strong>Error:</strong> {{ message }}
+        <br>
+        {{ message_2 }}
+    </div>
     {% endif %}
     {% if message_2 %}
     <div class="container">
-      <div class="alert alert-success">
-        {{ message_2 }}
-      </div>
-      {% endif %}
-    <div class="card my-5">
-        <div class="row">
-            <div class="col-md-5">
-                <img class="card-img-top" src="media/{{ item.image_file }}" alt="{{ item.description }}">
-            </div>
-            <div class="col-md-7">
-                <div class="card-body">
-                    <h2 class="card-title">Listing: {{ item.title }} </h2>
-                    <p class="card-text">{{ item.description }}</p>
+        <div class="alert alert-success">
+            {{ message_2 }}
+        </div>
+        {% endif %}
+        <div class="card my-5">
+            <div class="row">
+                <div class="col-md-5">
+                    <img class="card-img-top" src="media/{{ item.image_file }}" alt="{{ item.description }}">
                 </div>
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item">Starting Bid: ${{ item.starting_price }}</li>
-                    <li class="list-group-item">
-                        Highest Bid: 
-                        {% if current_bid != None %} 
-                            {{ current_bid.amount }} 
-                        {% else %} 
-                            $0.00 
-                        {% endif %}
-                    </li>
-                </ul>
-                <div class="card-body">
-                    {% if bid_closed == True %}
-                        <div class="alert alert-danger">Bidding has closed. Item has been sold for ${{ current_bid.amount }}</div>
-                    {% else %}
+                <div class="col-md-7">
+                    <div class="card-body">
+                        <h2 class="card-title"><b>Listing:</b> {{ item.title }} </h2>
+                        <p class="card-text"><b>Description:</b> {{ item.description }}</p>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><b>Starting Bid:</b> ${{ item.starting_price }}</li>
+                        <li class="list-group-item">
+                            <b>Highest Bid:</b>
+                            {% if current_bid != None %}
+                            {{ current_bid.amount }}
+                            {% else %}
+                            $0.00
+                            {% endif %}
+                        </li>
+                    </ul>
+                    <div class="card-body">
+                        {% if bid_closed == True %}
+                        <div class="alert alert-danger">Bidding has closed. Item has been sold for ${{
+                            current_bid.amount }}</div>
+                        {% else %}
                         <form action="{% url 'place_bid' %}" method="post">
                             {% csrf_token %}
                             <input type="hidden" name="item_id" value="{{ item.id }}">
                             <input type="hidden" name="starting_price" value="{{ item.starting_price }}">
                             <div class="form-group">
-                                <label for="bid-amount">Enter your bid:</label>
-                                <input type="number" name="bid_amount" id="bid-amount" min="{{ item.current_bid }}" class="form-control" required>
+                                <label for="bid-amount"><b>Enter your bid:</b></label>
+                                <input type="number" name="bid_amount" id="bid-amount" min="{{ item.current_bid }}"
+                                    class="form-control" required>
                             </div>
                             <input type="submit" value="Place Bid" class="btn btn-primary">
                         </form>
@@ -59,43 +61,43 @@
                             <input type="submit" value="Add to Watchlist" class="btn btn-secondary">
                         </form>
                         {% if seller == True and bid_closed == False %}
-          <form action="{% url 'close_auction' %}" method="post">
-              {% csrf_token %}
-              <input type="hidden" name="close_auction" value="{{ item.id }}">
-              <input type="submit" value="Close Auction">
-          </form>
-          {% endif %}
-      </div>
-  </div>
-</div>
-</div>
-   {% endif %}
-   {% endif %}
+                        <form action="{% url 'close_auction' %}" method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="close_auction" value="{{ item.id }}">
+                            <input type="submit" value="Close Auction">
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endif %}
 
-   <div class="container" >
-       <form action="{%  url 'post_comment' %}" method="post" enctype="multipart/form-data"  autocomplete="off">
-           {% csrf_token %}
-           <div class="form-group">
-               <label for="{{ form.comment.id_for_label }}">{{ form.comment.label }}:</label>
-               <textarea rows="3" cols="50" name="{{ form.comment.name }}" class="form-control"></textarea>
-           </div>
-           <input type="hidden" name="token" value="{{current_time}}">
-           <input type="hidden" name="{{ form.item.name }}" value="{{ item.id }}">
-           <input type="submit" value="Submit" class="btn btn-primary">
-       </form>
-   </div>
+        <div class="container">
+            <form action="{%  url 'post_comment' %}" method="post" enctype="multipart/form-data" autocomplete="off">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="{{ form.comment.id_for_label }}">{{ form.comment.label }}:</label>
+                    <textarea rows="3" cols="50" name="{{ form.comment.name }}" class="form-control"></textarea>
+                </div>
+                <input type="hidden" name="token" value="{{current_time}}">
+                <input type="hidden" name="{{ form.item.name }}" value="{{ item.id }}">
+                <input type="submit" value="Submit" class="btn btn-primary">
+            </form>
+        </div>
 
-<div class="container my-5">
-    <h2>Comments</h2>
-    <ul>
-        {% for item in comment_list %}
-            <li>
-                {{ item.comment }} 
-                <br>
-                <strong>Posted By:</strong> {{ item.user}} on {{ item.comment_date }}
-            </li>
-        {% endfor %}
-    </ul>
-</div>
+        <div class="container my-5">
+            <h2>Comments</h2>
+            <ul>
+                {% for item in comment_list %}
+                <li>
+                    {{ item.comment }}
+                    <br>
+                    <strong>Posted By:</strong> {{ item.user}} on {{ item.comment_date }}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
 
-  {% endblock %}
+        {% endblock %}

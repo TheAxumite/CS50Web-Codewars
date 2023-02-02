@@ -19,6 +19,4 @@ urlpatterns = [
     path("close_auction", views.close_bid, name="close_auction"),
     path("category", views.categories, name="category"),
     path("post_comment", views.comment, name="post_comment")
-
-
-   
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
