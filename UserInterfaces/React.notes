@@ -1,0 +1,69 @@
+/*
+                        
+                        useState: allows you to add state to functional components.
+                        Example code:  
+                        const [count, setCount] = useState(0);
+                        
+                        useEffect: lets you perform side effects in functional components.
+                        Example code:
+                        useEffect(() => {
+                            document.title = `You clicked ${count} times`;
+                        }, [count]);
+                        
+                
+                        useContext: lets you access the context in functional components.
+                        Example code:
+                        const value = useContext(MyContext);
+                        
+                        useReducer: lets you manage complex state updates.
+                        Example code:
+                        const [state, dispatch] = useReducer(reducer, initialArg, init);
+
+
+                        useCallback: lets you memoize functions.
+                        Example code:
+                        scss
+                        Copy code
+                        const memoizedCallback = useCallback(
+                        () => {
+                            doSomething(a, b);
+                        },
+                        [a, b],
+                        );
+
+
+                        useMemo: lets you memoize values.
+                        Example code:
+                        scss
+                        Copy code
+                        const memoizedValue = useMemo(() => computeExpensiveValue(a, b), [a, b]);
+
+
+                        useRef: lets you access the DOM.
+                        Example code:
+                        scss
+                        Copy code
+                        const refContainer = useRef(initialValue);
+
+                        
+                        useImperativeHandle: lets you customize the behavior of imperative code.
+                        Example code:
+                        scss
+                        Copy code
+                        useImperativeHandle(ref, () => ({
+                        focus: () => {
+                            // ...
+                        },
+                        }));
+                        useLayoutEffect: similar to useEffect but fires synchronously.
+                        Example code:
+                        scss
+                        Copy code
+                        useLayoutEffect(() => {
+                        // ...
+                        });
+                        useDebugValue: lets you display a custom label for your custom Hook in the React DevTools.
+                        Example code:
+                        scss
+                        Copy code
+                        useDebugValue(value, formatValue);
