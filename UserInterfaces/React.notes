@@ -67,3 +67,9 @@
                         scss
                         Copy code
                         useDebugValue(value, formatValue);
+
+                        **setState** is a method in React.js used to update the state of a component. 
+                        State is a plain JavaScript object used to store data and keep track of changes within a component.
+                        When the state changes, the component re-renders to reflect the updated state. 
+                        The setState method takes an object as an argument that represents the updated state, and then triggers a re-render of the component.
+                        The setState method is asynchronous, meaning that multiple calls to it in a short period of time may be combined into a single update for better performance.
