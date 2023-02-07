@@ -1,0 +1,81 @@
+textarea {
+    min-height: 400px;
+
+}
+
+h3 {
+    padding: 20px;
+    color: blue;
+}
+
+.email-box {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin: 0px 0;
+    background-color: aliceblue;
+    border-bottom: 1px solid #ccc;
+}
+
+.email-box input[type="checkbox"] {
+    margin-right: 10px;
+}
+
+@keyframes grow {
+    0% {
+        left: 0px;
+        
+    }
+
+    50% {
+
+        background-color: #d9e2f3;
+        
+    }
+
+    100% {
+
+        background-color: #d9e2f3;
+        display: none;
+        
+
+    }
+}
+
+.email-box:hover {
+
+    animation-name: grow;
+    animation-duration: 2s;
+    animation-fill-mode: forwards;
+
+
+}
+
+.email-box span {
+    margin-right: 10px;
+    display: none;
+}
+
+@keyframes appear {
+    0% {
+        opacity: 0;
+        transform: scale(0);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.2);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.email-box:hover span {
+    display: block;
+    animation-name: appear;
+    animation-duration: 3s;
+    animation-fill-mode: forwards;
+}
