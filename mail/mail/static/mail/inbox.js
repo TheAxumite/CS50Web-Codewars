@@ -6,6 +6,8 @@ document.addEventListener('DOMContentLoaded', function () {
   document.querySelector('#archived').addEventListener('click', () => load_mailbox('archive'));
   document.querySelector('#compose').addEventListener('click', compose_email);
   document.querySelector('#compose-form').addEventListener('submit', submit_mail);
+  document.querySelector('.reply-button').addEventListener('click', reply_mail);
+
 
 
   // By default, load the inbox
@@ -17,6 +19,8 @@ function compose_email() {
   // Show compose view and hide other views
   document.querySelector('#emails-view').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'block';
+  document.querySelector('.email-container').style.display = 'none';
+
 
   // Clear out composition fields
   document.querySelector('#compose-recipients').value = '';
@@ -29,46 +33,68 @@ function load_mailbox(mailbox) {
   // Show the mailbox and hide other views
   document.querySelector('#emails-view').style.display = 'block';
   document.querySelector('#compose-view').style.display = 'none';
+  document.querySelector('.email-container').style.display = 'none';
 
   // Show the mailbox name
   document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
 
   //Retrieve Email based
-  
 
-  
+
+
   fetch(`/emails/${mailbox}`)
     .then(response => response.json())
     .then(emails => {
       // Print emails
-      emails.forEach(email =>{
-      let key = {'inbox': `From: ${email.recipients}`, 'sent': `To: ${email.sender}`}
-      let line = document.createElement('div');
-      let checkbox = document.createElement("input");
-      checkbox.type = "checkbox";
-      line.className = 'email-box';
-      let dots = document.createElement("span");
-      dots.innerHTML = "⋮⋮";
-      line.appendChild(dots);
-      line.appendChild(checkbox);
-      line.innerHTML += `<a href="#" ${onclick=open_email(email.id)} ${key[mailbox]} Subject: ${email.subject}, Date: ${email.timestamp}</a>`;
-      document.querySelector("#emails-view").innerHTML+= line.outerHTML;
-      
-      
+
+      emails.forEach(email => {
+        console.log(email.read);
+        let key = { 'inbox': `From: ${email.recipients}`, 'sent': `To: ${email.sender}` }
+        let line = document.createElement('div');
+        let checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        if (email.read == false) { line.className = 'new-email-box'; } else { line.className = 'email-box'; }
+        let dots = document.createElement("span");
+        dots.innerHTML = "⋮⋮";
+        line.appendChild(dots);
+        line.appendChild(checkbox);
+        line.innerHTML += `<a href="#" onclick="open_email(${email.id})"> ${key[mailbox]} Subject: ${email.subject}, Date: ${email.timestamp}</a>`;
+        document.querySelector("#emails-view").innerHTML += line.outerHTML;
+
+
+      });
+
+
     });
-    
-    
-  });
 }
 
 function open_email(id) {
   fetch(`/emails/${id}`)
     .then(response => response.json())
     .then(email => {
+      console.log(email.read);
+      //Hides the email composition fields and inbox view. Displays the email container fields
+      document.querySelector('#emails-view').style.display = 'none';
+      document.querySelector('#compose-view').style.display = 'none';
+      document.querySelector('.email-container').style.display = 'block';
+      // Clear out composition fields
+      document.querySelector('.email-container').style.display.innerHTML = '';
       // Print email
-      
-      // ... do something else with email ...
+      document.querySelector(".email-header h3").innerHTML = `From: ${email.sender}`;
+      document.querySelector(".email-body h2").innerHTML = `Subject: ${email.subject}`;
+      document.querySelector(".email-header p").innerHTML = email.timestamp;
+      document.querySelector(".email-footer p").innerHTML = email.body;
+
+  
     });
+
+  // Mark email as read  
+  fetch(`/emails/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify({
+      read: true
+    })
+  })
 }
 
 function submit_mail() {
@@ -78,8 +104,24 @@ function submit_mail() {
     body: JSON.stringify({
       recipients: document.querySelector('#compose-recipients').value,
       subject: document.querySelector('#compose-subject').value,
-      body: document.querySelector('#compose-body').value
+      body: document.querySelector('#compose-body').value,
+      read: '',
+      archived: ''
     })
   })
   load_mailbox('sent')
+}
+
+
+function reply_mail() {
+  document.querySelector('#emails-view').style.display = 'none';
+  document.querySelector('#compose-view').style.display = 'block';
+  document.querySelector('.email-container').style.display = 'none';
+
+
+  document.querySelector('#compose-recipients').innerHTML = document.querySelector(".email-header h3").innerHTML;
+  document.querySelector('#compose-body').innerHTML = `On ${document.querySelector(".email-header p").innerHTML} <${document.querySelector(".email-header h3").innerHTML.slice(6)}> wrote: ${document.querySelector(".email-footer p").innerHTML} `;
+  document.querySelector('#compose-subject').value = `RE: ${document.querySelector(".email-body h2").innerHTML.slice(8)}`;
+
+
 }
