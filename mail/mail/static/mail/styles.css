@@ -17,6 +17,9 @@ h3 {
     border-bottom: 1px solid #ccc;
 }
 
+
+
+
 .new-email-box {
     display: flex;
     align-items: center;
@@ -27,6 +30,14 @@ h3 {
     font-weight: bold;
 }
 
+.date {
+    display: flex;
+    background-color: aliceblue;
+    border-bottom: 1px solid #ccc;
+    margin-left: auto;
+    
+}
+
 .email-box input[type="checkbox"] {
     margin-right: 10px;
 }
@@ -34,6 +45,8 @@ h3 {
 .new-email-box input[type="checkbox"] {
     margin-right: 10px;
 }
+
+
 
 @keyframes grow {
     0% {
@@ -56,24 +69,21 @@ h3 {
     }
 }
 
-.email-box:hover {
+.email-box:hover + .date{
     animation-name: grow;
     animation-duration: 2s;
     animation-fill-mode: forwards;
 }
 
-.new-email-box:hover {
+.new-email-box:hover + .date {
     animation-name: grow;
     animation-duration: 2s;
     animation-fill-mode: forwards;
 }
 
-.new-email-box span {
-    margin-right: 10px;
-    display: none;
-}
 
-.email-box span {
+
+.email-box .mail-list {
     margin-right: 10px;
     display: none;
 }
@@ -95,14 +105,14 @@ h3 {
     }
 }
 
-.email-box:hover span {
+.email-box:hover .mail-list + .date  {
     display: block;
     animation-name: appear;
     animation-duration: 3s;
     animation-fill-mode: forwards;
 }
 
-.new-email-box:hover span {
+.new-email-box:hover .mail-list  + .date{
     display: block;
     animation-name: appear;
     animation-duration: 3s;
