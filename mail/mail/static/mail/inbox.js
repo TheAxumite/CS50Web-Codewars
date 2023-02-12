@@ -28,6 +28,16 @@ function compose_email() {
   document.querySelector('#compose-body').value = '';
 }
 
+function archive(id) {
+  fetch(`/emails/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify({
+      archive: true
+    })
+  })
+  load_mailbox('inbox');
+}
+
 function load_mailbox(mailbox) {
 
   // Show the mailbox and hide other views
@@ -39,29 +49,31 @@ function load_mailbox(mailbox) {
   document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
 
   //Retrieve Email based
-
-
-
   fetch(`/emails/${mailbox}`)
     .then(response => response.json())
     .then(emails => {
       // Print emails
 
       emails.forEach(email => {
-        console.log(email.read);
         let key = { 'inbox': `From: ${email.recipients}`, 'sent': `To: ${email.sender}` }
         let line = document.createElement('div');
         let checkbox = document.createElement("input");
+        let archive = document.createElement("button");
+        archive.type = 'submit';
+        archive.textContent = 'Archive';
+        archive.className = 'archive_button';
+        archive.onclick = function() {archive(email.id);};
         checkbox.type = "checkbox";
         if (email.read == false) { line.className = 'new-email-box'; } else { line.className = 'email-box'; }
         let dots = document.createElement("span");
+        dots.className='mail-list';
         dots.innerHTML = "⋮⋮";
         line.appendChild(dots);
         line.appendChild(checkbox);
-        line.innerHTML += `<a href="#" onclick="open_email(${email.id})"> ${key[mailbox]} Subject: ${email.subject}, Date: ${email.timestamp}</a>`;
+        line.innerHTML += `<a href="#" onclick="open_email(${email.id})"> ${key[mailbox]} Subject: ${email.subject}</a><span class="date"> Date: ${email.timestamp}</span>`;
+        line.appendChild(archive);
         document.querySelector("#emails-view").innerHTML += line.outerHTML;
-
-
+        
       });
 
 
@@ -105,8 +117,6 @@ function submit_mail() {
       recipients: document.querySelector('#compose-recipients').value,
       subject: document.querySelector('#compose-subject').value,
       body: document.querySelector('#compose-body').value,
-      read: '',
-      archived: ''
     })
   })
   load_mailbox('sent')
@@ -125,3 +135,5 @@ function reply_mail() {
 
 
 }
+
+
