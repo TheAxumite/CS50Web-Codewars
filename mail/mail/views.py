@@ -115,10 +115,12 @@ def email(request, email_id):
 
     # Update whether email is read or should be archived
     elif request.method == "PUT":
+        print("print")
         data = json.loads(request.body)
         if data.get("read") is not None:
             email.read = data["read"]
         if data.get("archived") is not None:
+            print("archive")
             email.archived = data["archived"]
         email.save()
         return HttpResponse(status=204)

@@ -28,17 +28,9 @@ function compose_email() {
   document.querySelector('#compose-body').value = '';
 }
 
-function archive(id) {
-  fetch(`/emails/${id}`, {
-    method: 'PUT',
-    body: JSON.stringify({
-      archive: true
-    })
-  })
-  load_mailbox('inbox');
-}
 
 function load_mailbox(mailbox) {
+
 
   // Show the mailbox and hide other views
   document.querySelector('#emails-view').style.display = 'block';
@@ -48,36 +40,50 @@ function load_mailbox(mailbox) {
   // Show the mailbox name
   document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
 
+  //Archive function that runs when archive button is clicked
+
+
   //Retrieve Email based
   fetch(`/emails/${mailbox}`)
     .then(response => response.json())
     .then(emails => {
       // Print emails
-
+      console.log(emails);
       emails.forEach(email => {
-        let key = { 'inbox': `From: ${email.recipients}`, 'sent': `To: ${email.sender}` }
+        let key = { 'inbox': `From: ${email.recipients}`, 'sent': `To: ${email.sender}`, 'archive': `From: ${email.sender}` };
         let line = document.createElement('div');
-        let checkbox = document.createElement("input");
-        let archive = document.createElement("button");
-        archive.type = 'submit';
-        archive.textContent = 'Archive';
-        archive.className = 'archive_button';
-        archive.onclick = function() {archive(email.id);};
-        checkbox.type = "checkbox";
         if (email.read == false) { line.className = 'new-email-box'; } else { line.className = 'email-box'; }
         let dots = document.createElement("span");
-        dots.className='mail-list';
+        dots.className = 'mail-list';
         dots.innerHTML = "⋮⋮";
         line.appendChild(dots);
-        line.appendChild(checkbox);
-        line.innerHTML += `<a href="#" onclick="open_email(${email.id})"> ${key[mailbox]} Subject: ${email.subject}</a><span class="date"> Date: ${email.timestamp}</span>`;
-        line.appendChild(archive);
+        let button = '';
+        if (mailbox === 'inbox') {
+          button = `<button class="archive_button" onclick="archiveEmail(${email.id}, true)">Archive</button>`;
+        } else if (mailbox === 'archive') {
+          button = `<button class="archive_button" onclick="archiveEmail(${email.id}, false)">Unarchive</button>`;
+        }
+        line.innerHTML += `<a href="#" onclick="open_email(${email.id})">${key[mailbox]} Subject: ${email.subject}</a><span class="date"> Date: ${email.timestamp}</span>${button}`;
         document.querySelector("#emails-view").innerHTML += line.outerHTML;
         
       });
 
 
     });
+
+}
+
+async function archiveEmail(id,change) {
+
+  fetch(`/emails/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify({
+      archived: change
+    })
+  })
+  await new Promise(resolve => setTimeout(resolve, 200));
+  load_mailbox(change ? 'inbox' : 'archive');
+
 }
 
 function open_email(id) {
@@ -97,7 +103,7 @@ function open_email(id) {
       document.querySelector(".email-header p").innerHTML = email.timestamp;
       document.querySelector(".email-footer p").innerHTML = email.body;
 
-  
+
     });
 
   // Mark email as read  
@@ -135,5 +141,6 @@ function reply_mail() {
 
 
 }
+
 
 

@@ -46,6 +46,9 @@ h3 {
     margin-right: 10px;
 }
 
+.email-container{
+    background-color: #999;
+}
 
 
 @keyframes grow {
@@ -69,13 +72,13 @@ h3 {
     }
 }
 
-.email-box:hover + .date{
+.email-box:hover {
     animation-name: grow;
     animation-duration: 2s;
     animation-fill-mode: forwards;
 }
 
-.new-email-box:hover + .date {
+.new-email-box:hover  {
     animation-name: grow;
     animation-duration: 2s;
     animation-fill-mode: forwards;
@@ -105,14 +108,14 @@ h3 {
     }
 }
 
-.email-box:hover .mail-list + .date  {
+.email-box:hover .mail-list   {
     display: block;
     animation-name: appear;
     animation-duration: 3s;
     animation-fill-mode: forwards;
 }
 
-.new-email-box:hover .mail-list  + .date{
+.new-email-box:hover .mail-list {
     display: block;
     animation-name: appear;
     animation-duration: 3s;
@@ -193,5 +196,21 @@ h3 {
 }
 
 .reply-button:hover {
+    background-color: #0069d9;
+}
+
+
+.archive_button {
+    float: right;
+    margin-top: 40px;
+    padding: 8px 16px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.archive_button:hover {
     background-color: #0069d9;
 }
