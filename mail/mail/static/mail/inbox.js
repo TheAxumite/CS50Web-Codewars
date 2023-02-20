@@ -48,16 +48,18 @@ function load_mailbox(mailbox) {
     .then(response => response.json())
     .then(emails => {
       // Print emails
-      console.log(emails);
       emails.forEach(email => {
+        //dictionary that holds a value  of reciepent and sender
         let key = { 'inbox': `From: ${email.recipients}`, 'sent': `To: ${email.sender}`, 'archive': `From: ${email.sender}` };
         let line = document.createElement('div');
+        //if email is new the font for the email box becomes bold
         if (email.read == false) { line.className = 'new-email-box'; } else { line.className = 'email-box'; }
         let dots = document.createElement("span");
         dots.className = 'mail-list';
         dots.innerHTML = "⋮⋮";
         line.appendChild(dots);
         let button = '';
+        //if view is inbox or archive, an archive or unarchive button is created and added at the end of the line
         if (mailbox === 'inbox') {
           button = `<button class="archive_button" onclick="archiveEmail(${email.id}, true)">Archive</button>`;
         } else if (mailbox === 'archive') {
@@ -74,14 +76,16 @@ function load_mailbox(mailbox) {
 }
 
 async function archiveEmail(id,change) {
-
+ //archives or unarchives email based on what the boolean value of change is
   fetch(`/emails/${id}`, {
     method: 'PUT',
     body: JSON.stringify({
       archived: change
     })
   })
+  //waits 2 seconds before continuing 
   await new Promise(resolve => setTimeout(resolve, 200));
+  //loads the appropriate view based on what the boolean value of change is
   load_mailbox(change ? 'inbox' : 'archive');
 
 }
@@ -116,7 +120,7 @@ function open_email(id) {
 }
 
 function submit_mail() {
-  console.log(document.querySelector('#compose-recipients').value);
+
   fetch('/emails', {
     method: 'POST',
     body: JSON.stringify({
