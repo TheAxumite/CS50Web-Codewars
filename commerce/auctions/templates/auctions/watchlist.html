@@ -1,26 +1,26 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
-  {% if user.is_authenticated %}
-    <div class="watchlist-container">
-      <h2 class="watchlist-title">Watch List</h2>
-      <div class="watchlist-items">
-        {% for i in list %}
-          <div class="watchlist-item d-flex align-items-center">
-            <form action="{% url 'remove_watchlist' %}" method="post" class="watchlist-remove-form">
-                {% csrf_token %}
-                <input type="hidden" name="item_id" value="{{ i.id }}">
-                <input type="submit" value="Remove" class="watchlist-remove-button btn btn-danger">
-            
-              </form>
-            <a href="{% url 'listings' i.id %}" class="watchlist-item-title mr-3">{{ i.title }}</a>
-          </div>
-          <br>
-        {% endfor %}
-      </div>
-      {% if message %}
-        <div class="watchlist-message text-danger">{{ message }}</div>
-      {% endif %}
+{% if user.is_authenticated %}
+<div class="watchlist-container">
+  <h2 class="watchlist-title">Watch List</h2>
+  <div class="watchlist-items">
+    {% for i in list %}
+    <div class="watchlist-item d-flex align-items-center">
+      <form action="{% url 'remove_watchlist' %}" method="post" class="watchlist-remove-form">
+        {% csrf_token %}
+        <input type="hidden" name="item_id" value="{{ i.id }}">
+        <input type="submit" value="Remove" class="watchlist-remove-button btn btn-danger">
+
+      </form>
+      <a href="{% url 'listings' i.id %}" class="watchlist-item-title mr-3">{{ i.title }}</a>
     </div>
+    <br>
+    {% endfor %}
+  </div>
+  {% if message %}
+  <div class="watchlist-message text-danger">{{ message }}</div>
   {% endif %}
+</div>
+{% endif %}
 {% endblock %}
