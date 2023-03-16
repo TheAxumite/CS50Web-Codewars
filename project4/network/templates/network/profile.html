@@ -1,0 +1,28 @@
+{% extends "network/layout.html" %}
+{% load static %}
+{% block body %}
+
+<div id="profile">
+    <div class="profile_columns">
+        <h2>Followers: <span id="followers-column">{{count.</span></h2>
+    </div>
+    <div class="profile_columns">
+        <h2>Following:<span id="following-column"></span></h2>
+    </div>
+</div>
+<div id="all_posts"> </div>
+<div class="container my-5">
+   
+        {% for item in posts %}
+        <li>
+            {{ item.post }}
+            <br>
+            <strong>Posted By:</strong> {{ item.user}} on {{ item.timestamp }}
+        </li>
+        <br>
+        {% endfor %}
+    </ul>
+</div>
+<input type="hidden" id="csrf_token" value="{{ csrf_token }}">
+
+{% endblock %}

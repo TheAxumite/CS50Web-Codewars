@@ -1,0 +1,22 @@
+#Posts {
+  
+    border: 2px solid #cacaca;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 20px;
+    
+}
+
+#new_posts {
+  
+    border: 2px solid #cacaca;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 20px;
+    
+}
+
+.profile_columns {
+    float: left;
+    width: 50%;
+  }
