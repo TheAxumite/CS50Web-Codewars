@@ -3,22 +3,32 @@ from django.db import models
 import json
 
 
-
 class User(AbstractUser):
     followers = models.ManyToManyField(
-        "self", related_name="list_of_followers", blank=True)
+        "self", related_name="list_of_followers", blank=True, symmetrical=False)
     following = models.ManyToManyField(
-        "self", related_name="list_of_following", blank=True)
+        "self", related_name="list_of_following", blank=True, symmetrical=False)
 
-    def follow(self, profile_id):
+    @classmethod
+    def follow_unfollow(cls, username, profile):
+        user = User.objects.get(username=username)
+        target_profile = User.objects.get(username=profile)
+
+        if target_profile in user.followers.all():
+            return {"followers": True}
+        else:
+            user.followers.add(target_profile)
+            target_profile.following.add(user)
+            return {"followers": user.followers.count()}
+
+    def check_following(self, profile_id):
         user_to_follow = User.objects.get(id=profile_id)
         if user_to_follow.followers.filter(id=self.id).exists():
-            return False
-        user_to_follow.followers.add(self)
-        return True
+            return True
 
-    def count_followers_and_following(self):
-        return {"followers":self.followers.count(), "following":self.followers.count()}
+    def count_followers_and_following(user):
+        count = User.objects.get(username=user)
+        return {"followers": count.followers.count(), "following": count.following.count()}
 
 
 class Posts(models.Model):
@@ -29,28 +39,22 @@ class Posts(models.Model):
     post_likes = models.ManyToManyField(
         "User", related_name="list_of_post_likes")
 
-
-
     @classmethod
     def add_post(cls, post, user):
         return cls.objects.create(post=post, user=user)
-
-
 
     @classmethod
     def like_post(cls, post, user):
         if user in cls.objects.get(pk=post).post_likes.all():
             post = cls.objects.get(pk=post)
             post.post_likes.remove(user)
-            return {"liked":True, "like_count": post.post_likes.count()}
+            return {"liked": True, "like_count": post.post_likes.count()}
         post = cls.objects.get(pk=post)
         post.post_likes.add(user)
-        return {"liked":False, "like_count": post.post_likes.count()}
+        return {"liked": False, "like_count": post.post_likes.count()}
 
-
-
-    def serialize(self):
-        if self.user in self.post_likes.all():
+    def serialize(self, user):
+        if user in self.post_likes.all():
             likes = True
         else:
             likes = False
@@ -60,15 +64,10 @@ class Posts(models.Model):
             "post": self.post,
             "post_likes": self.post_likes.count(),
             "timestamp": self.timestamp.strftime("%b %d %Y, %I:%M %p"),
-            "current_user_like": likes
-            
-        }
-
-
+            "current_user_like": likes}
 
 
 class Comments(models.Model):
-
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="commenter")
     comment = models.TextField()

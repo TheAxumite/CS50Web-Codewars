@@ -5,7 +5,7 @@ from django.shortcuts import render
 from django.urls import reverse
 import json
 from django.contrib.auth.decorators import login_required
-
+from django.core.paginator import Paginator
 from .models import *
 
 
@@ -68,29 +68,64 @@ def register(request):
 @login_required
 def load_posts(request, load):
     if load == "userprofile":
-        all_posts = Posts.objects.filter(user=request.user).order_by("-timestamp").all()
-    elif load.isalpha() and load != "allposts":
-        all_posts = Posts.objects.filter(user = User.objects.get(username=load)).order_by("-timestamp").all()
-    else:
-        all_posts = Posts.objects.all().order_by("-timestamp").all()
+        all_posts = Posts.objects.filter(user=request.user).order_by("-timestamp")
 
-    data = {
-        'posts': [post.serialize() for post in all_posts],
-        'count': User.count_followers_and_following(request.user)
-    }
-    return JsonResponse(data, safe=False)
+    elif load.isalpha() and load != "allposts":
+        all_posts = Posts.objects.filter(user=User.objects.get(username=load)).order_by("-timestamp")
+        paginator = Paginator(all_posts, 10)
+        data = {
+            'posts': [post.serialize(request.user) for post in all_posts[:10]],
+            'count': User.count_followers_and_following(load),
+            'requester': {'current_profile': str(load)},
+            'pagination': paginator.num_pages
+        }
+        paginator = Paginator(all_posts, 10).object_list
+        return JsonResponse(data, safe=False)
     
+    else:
+        all_posts = Posts.objects.all().order_by("-timestamp")
+        paginator = Paginator(all_posts, 10)
+    data = {
+        'posts': [post.serialize(request.user) for post in all_posts[:10]],
+        'count': User.count_followers_and_following(request.user),
+        'requester': {'current_profile': str(load)},
+        'pagination': paginator.num_pages}
+    return JsonResponse(data, safe=False)
+
+
 @login_required
 def create_post(request):
     if request.method == "POST":
         data = json.loads(request.body)
         Posts.add_post(data.get("comment"), request.user)
-        return load_posts("userprofile")
+        load = "userprofile"
+        return load_posts(request, load)
 
 
 @login_required
 def like_post(request, post_id):
     if request.method == "PUT":
         return JsonResponse(Posts.like_post(post_id, request.user), safe=False)
-        
-            
+
+
+@login_required
+def follow(request, username):
+
+    if request.method == "PUT":
+        return JsonResponse(User.follow_unfollow(username, request.user), safe=False)
+
+@login_required
+def load_page(request, load):
+    load_dict = json.loads(load)
+    print(load_dict)
+    if load_dict['next_set'] is True and load_dict['previous_set'] is not True:
+        if load_dict['profile'] == 'All Posts':
+            profile = request.user
+        else:
+            profile = load_dict['profile']
+        paginator = Paginator(Posts.objects.filter(user= User.objects.get(username = profile)).order_by("-timestamp"), 10)
+        if int(paginator.num_pages) * 10 > int(load_dict['page']) + 5:
+            print(paginator.page(load_dict['page']+1).object_list)
+            return JsonResponse({'data':[post.serialize(request.user) for post in paginator.page(load_dict['page'] + 1).object_list]
+                                 'pages_left': "//to do"}, safe = False)
+                                
