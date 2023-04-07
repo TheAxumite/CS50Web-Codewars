@@ -103,25 +103,157 @@
         this.style.width = '64px';
     };
 
+
+
+
     function page_selection(event) {
         const page_number = event.target;
+
+
         const profileHeader = document.querySelector('#profile_header').innerHTML;
+        load = {
+            'page': (page_number.innerHTML === 'Next') ?
+                parseInt(page_number.parentElement.previousElementSibling.innerText) + 1 :
+                (page_number.innerHTML === 'Previous') ?
+                    parseInt(page_number.parentElement.nextElementSibling.innerText) - 5 :
+                    parseInt(page_number.innerHTML),
+            'next_set': (page_number.innerHTML == 'Next'),
+            'previous_set': (page_number.innerHTML == 'Previous'),
+            'profile': (profileHeader.slice(-8) === "'s Posts") ? profileHeader.slice(-8) : profileHeader
+
+        }
 
 
-        if (page_number.innerHTML == 'Next')
-        {   
-            load = {'page': parseInt(page_number.parentElement.previousElementSibling.innerText), 
-                    'next_set': true, 
-                    'previous_set': false,
-                    'profile': (profileHeader.slice(-8) === "'s Posts") ? profileHeader.slice(0, -8) : profileHeader}
-            const jsonString = JSON.stringify(load);
-            const encodedData = encodeURIComponent(jsonString);
-            fetch(`/load_page/${encodedData}`)
+        const jsonString = JSON.stringify(load);
+        const encodedData = encodeURIComponent(jsonString);
+        fetch(`/load_page/${encodedData}`)
             .then(response => response.json())
             .then(page => {
-                console.log(page);
+                add_pagination(page, load, windowload = false)
 
-        })}
+            })
+    }
+
+    function createNavItem(text, ul, clickHandler) {
+
+        const item = document.createElement('li');
+        item.className = 'page-item';
+        const link = document.createElement('a');
+        link.className = 'page-link';
+        link.innerText = text;
+        link.addEventListener("click", clickHandler);
+        item.appendChild(link);
+        ul.appendChild(item);
+
+    }
+
+    function isAlphabet(char) {
+        return /^[a-zA-Z]$/.test(char);
+    }
+
+
+    function add_pagination(postdata, pagedata = null, windowload = false) {
+
+        const allPosts = document.querySelector(".all_posts");
+        const nav = document.createElement('nav');
+        nav.setAttribute('aria-label', 'Page navigation example');
+        const ul = document.createElement('ul');
+        ul.className = 'pagination';
+
+        createNavItem('Previous', ul, page_selection);
+
+        let startPage = windowload ? 1 : postdata.pages_left + 1;
+
+        let pagesToShow = Math.min(postdata.pages_left, 5);
+        if (windowload) {
+            for (let i = startPage; i < startPage + pagesToShow; i++) {
+
+                item_element(i, ul, page_selection);
+            }
+
+            createNavItem('Next', ul, page_selection);
+
+            nav.appendChild(ul);
+            allPosts.appendChild(nav);
+        }
+        const pageLinks = document.querySelectorAll('.page-link');
+        const secondToLast = pageLinks[pageLinks.length - 2];
+
+        if (!windowload) {
+            console.log(pagedata);
+            if (pagedata.next_set === false && pagedata.previous_set === false) {
+                get_data = page_tracker('get_last_number_set', pagedata, postdata, windowload);
+                second_data = page_tracker('get_first_number_set', pagedata, postdata, windowload);
+                counter = get_data.last_num;
+                first_counter = second_data.first_num;
+                console.log(`Second Counter:${counter}`);
+                console.log(`First Counter:${first_counter}`);
+                console.log(`Pages left: ${page_tracker('get_fist_number_set', pagedata, postdata, windowload)}`);
+                console.log(parseInt(pageLinks[pageLinks.length - 2].innerHTML));
+
+                load_newpage(postdata, newset = false);
+
+                for (let i = first_counter; i <= counter; i++) {
+
+                    item_element(i, ul, page_selection);
+                }
+                if (parseInt(postdata.pages_left) + parseInt(pagedata.page) > 5) { createNavItem('Next', ul, page_selection); }
+                nav.appendChild(ul);
+                allPosts.appendChild(nav);
+
+            } else {
+                second_counter = (pagedata.next_set === true) ? Math.min(parseInt(pageLinks[pageLinks.length - 2].innerHTML) + 1 + postdata.pages_left, parseInt(pageLinks[pageLinks.length - 2].innerHTML) + 5) : pagedata.page + 4;
+                first_counter = (pagedata.next_set === true) ? parseInt(pageLinks[pageLinks.length - 2].innerHTML) + 1 : postdata.pages_left;
+                console.log(second_counter);
+                load_newpage(postdata, newset = false);
+
+                for (let i = first_counter; i <= second_counter; i++) {
+
+                    item_element(i, ul, page_selection);
+                }
+                console.log(`First Counter:${first_counter}`);
+                console.log(`Second Counter:${second_counter}`);
+                console.log(`Pages Left:${postdata.pages_left}`);
+                if (parseInt(postdata.pages_left) + parseInt(pagedata.page) > 5) { createNavItem('Next', ul, page_selection); }
+
+                nav.appendChild(ul);
+                allPosts.appendChild(nav);
+            }
+        }
+    }
+
+
+    function page_tracker(query, pagedata, postdata, windowload){
+       const pageLinks = document.querySelectorAll('.page-link');
+
+        if (query === `get_last_number_set`){
+        return {'last_num': pagedata.page <= parseInt(isAlphabet(pageLinks[pageLinks.length - 1].innerHTML[0]) ? pageLinks[pageLinks.length - 2].innerHTML : 
+        pageLinks[pageLinks.length - 1].innerHTML) ? parseInt(isAlphabet(pageLinks[pageLinks.length - 1].innerHTML[0]) ? pageLinks[pageLinks.length - 2].innerHTML : 
+        pageLinks[pageLinks.length - 1].innerHTML) : pagedata.page + postdata.pages_left + 1}}
+
+        if (query === `get_first_number_set` && !windowload){
+                    console.log(`page link length: ${pageLinks.length}`);
+            return  pageLinks.length === 7 ? {'first_num': pageLinks[pageLinks.length - 6].innerHTML[0]} : {'first_num': parseInt(isAlphabet(pageLinks[0].innerHTML[0])) ? pageLinks[1].innerHTML: pageLinks[0].innerHTML}}
+        }
+
+    
+
+
+    function item_element(i, ul, page_selection) {
+        const pageItem = document.createElement('li');
+        pageItem.className = 'page-item';
+
+        const pageLink = document.createElement('a');
+        pageLink.className = 'page-link';
+        pageLink.innerText = i;
+        pageLink.addEventListener("click", page_selection);
+
+        pageItem.appendChild(pageLink);
+        ul.appendChild(pageItem);
+
+        return {
+            pageItem: pageItem
+        };
     }
 
 
@@ -147,27 +279,6 @@
 
             })
     }
-
-    function add_pagination() {
-        document.querySelector(".all_posts").innerHTML +=
-            `<nav aria-label="Page navigation example">
-            <ul class="pagination">
-                <li class="page-item"><a class="page-link">Previous</a></li>
-                <li class="page-item"><a class="page-link">1</a></li>
-                <li class="page-item"><a class="page-link">2</a></li>
-                <li class="page-item"><a class="page-link">3</a></li>
-                <li class="page-item"><a class="page-link">4</a></li>
-                <li class="page-item"><a class="page-link">5</a></li>
-                <li class="page-item"><a class="page-link">Next</a></li>
-            </ul>
-        </nav>`;
-
-        const page_link = document.querySelectorAll(".page-link");
-        page_link.forEach(link => {
-            link.addEventListener("click", page_selection);
-        });
-    }
-
 
 
     function create_post() {
@@ -195,7 +306,7 @@
                 'X-CSRFToken': csrfToken
             },
             body: JSON.stringify({
-                post_id: id
+            post_id: id
             })
         })
             .then(response => response.json())
@@ -269,16 +380,51 @@
 
                 });
                 //appends pagitation html elmemnts after the DOM loads all the posts
-                add_pagination();
-
-
+                add_pagination(posts, undefined, true);
             })
-
-
-
     }
 
+    function load_newpage(postdata, newset) {
+        //TODO only remove if a new set of page is being loaded
 
+        const posts = document.querySelectorAll('.post');
+        posts.forEach(link => {
+            link.remove();
+        });
+        document.querySelector('[aria-label="Page navigation example"]').remove();
+        const page_selection_elemement = document.querySelectorAll('.page-item');
+        page_selection_elemement.forEach(link => {
+            link.remove();
+        });
+
+        postdata.data.forEach((element, index) => {
+            let line = document.createElement('div');
+            let post_user = document.createElement('a');
+            post_user.style.color = '#007bff';
+            post_user.className = "post_user";
+            post_user.style.cursor = 'pointer';
+            post_user.style.textDecoration = 'underline';
+            post_user.innerHTML = element.user;
+            post_user.setAttribute('onclick', `load_posts_profile("${element.user}")`);
+
+            let count_likes = document.createElement('span');
+            count_likes.textContent = element.post_likes;
+
+            line.className = "post";
+            line.id = `post_${element.id}`;
+            like_button_unlike.setAttribute('onclick', `like_post(${element.id})`);
+            like_button_unlike.setAttribute('data-csrf-token', csrfToken);
+            line.append(post_user);
+
+            line.innerHTML +=
+                `<span class="time_stamp">${element.timestamp}</span>
+                        <div class="post_string">${element.post}</div>`;
+            line.append(like_button_unlike, count_likes);
+
+            document.querySelector(".all_posts").innerHTML += line.outerHTML;
+            document.querySelector(`#post_${element.id} path:nth-of-type(1)`).setAttribute('d', element.current_user_like ? 'M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z' : 'm8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z');
+        })
+    }
 
 </script>
 {% endblock %}
