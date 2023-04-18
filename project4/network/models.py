@@ -1,7 +1,8 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 import json
-
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.db.utils import IntegrityError
 
 class User(AbstractUser):
     followers = models.ManyToManyField(
@@ -52,6 +53,22 @@ class Posts(models.Model):
         post = cls.objects.get(pk=post)
         post.post_likes.add(user)
         return {"liked": False, "like_count": post.post_likes.count()}
+    
+
+    @classmethod
+    def edit_post(cls, update, user):
+        try:
+            post = cls.objects.get(pk=post)
+            post.post = update
+            post.full_clean()
+            post.save
+        except ObjectDoesNotExist:
+            return "Post has been deleted"
+        except ValidationError as e:
+            return f"Validation error: {e}"
+        except IntegrityError as e:
+            return f"Integrity error: {e}"
+
 
     def serialize(self, user):
         if user in self.post_likes.all():
@@ -65,6 +82,7 @@ class Posts(models.Model):
             "post_likes": self.post_likes.count(),
             "timestamp": self.timestamp.strftime("%b %d %Y, %I:%M %p"),
             "current_user_like": likes}
+
 
 
 class Comments(models.Model):
