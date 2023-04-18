@@ -42,6 +42,24 @@ h1 {
     color: #b1b1b1;
 }
 
+.edit_button_div {
+    position: absolute;
+    top: 0px;
+    right: -170px;
+    width: 150px;
+    height: 30px;
+    background-color: #232324;
+    border: 1px solid #0d0d0e52;
+    border-radius: 5px;
+    z-index: 9999;
+    /* A high value to ensure it's on top of all other elements */
+    padding: 10px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 #compose-comment {
     margin-bottom: 1em;
 }
@@ -49,6 +67,8 @@ h1 {
 .post_user {
     cursor: pointer;
     text-decoration: underline;
+    margin-right: 1em;
+    margin-bottom: .05em;
 
 }
 
@@ -60,6 +80,7 @@ h1 {
 
 .post_string {
     font-size: 14px;
+    margin-top: 1em;
 }
 
 .time_stamp {
@@ -68,6 +89,14 @@ h1 {
     margin-left: 5px;
 }
 
+.edit_button {
+    position: absolute;
+    right: 0px;
+    font-size: larger;
+    margin: 0 auto;
+    margin-right: 1em;
+    cursor: pointer;
+}
 
 #compose-post {
     max-width: 600px;
@@ -121,6 +150,7 @@ h2 {
 }
 
 .all_posts {
+    position: relative;
     max-width: 800px;
     margin: 0 auto;
     text-align: center;
@@ -133,15 +163,18 @@ h2 {
 }
 
 .all_posts:hover {
+    position: relative; 
     background-color: #00000052;
 }
 
 .post {
+    position: relative;
     max-width: 800px;
     margin: 0 auto;
     text-align: left;
     margin-top: 1em;
     margin-bottom: 1em;
+
     background-color: #00000052;
     padding: 1em;
     border-radius: 5px;
@@ -152,30 +185,33 @@ h2 {
 
 @keyframes color-change {
     0% {
+        position: relative;
         background-color: #00000052;
         color: #ffffff;
         box-shadow: 0 2px 2px rgba(44, 44, 44, 0.1);
-        transform: scalex(1.01);
+        transform: scalex(1.001);
 
     }
 
 
 
     100% {
+        position: relative;
         background-color: #ffffff;
         color: black;
         box-shadow: 0 2px 2px rgba(255, 255, 255, 0.1);
-        transform: scalex(1.02);
+        transform: scalex(1.002);
 
     }
 }
 
 .post:hover {
+    position: relative;
     animation: color-change 1s ease;
     background-color: #ffffff;
     color: black;
     box-shadow: 0 5px 5px rgba(255, 255, 255, 0.1);
-    transform: scalex(1.02);
+    transform: scalex(1.002);
 
 }
 
@@ -197,4 +233,3 @@ h2 {
 .like_button:hover {
     background-color: #00000052;
 }
-

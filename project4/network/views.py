@@ -67,33 +67,23 @@ def register(request):
 
 @login_required
 def load_posts(request, load):
-    if load == "userprofile":
-        all_posts = Posts.objects.filter(
-            user=request.user).order_by("-timestamp")
+    print("print" + load)
+    if load.isalpha() and load != "allposts":
 
-    elif load.isalpha() and load != "allposts":
-        all_posts = Posts.objects.filter(
-            user=User.objects.get(username=load)).order_by("-timestamp")
-        paginator = Paginator(all_posts, 10)
         data = {
-            'posts': [post.serialize(request.user) for post in all_posts[:10]],
+            'data': [post.serialize(request.user) for post in Posts.objects.filter(
+                user=User.objects.get(username=load)).order_by("-timestamp")[:10]],
             'count': User.count_followers_and_following(load),
             'requester': {'current_profile': str(load)},
-            'pagination': paginator.num_pages,
-            'pages_left': int(paginator.num_pages)}
-        paginator = Paginator(all_posts, 10).object_list
+            'pages_left': Paginator(Posts.objects.filter(user=User.objects.get(username=load)).order_by("-timestamp"), 10).num_pages}
         return JsonResponse(data, safe=False)
-
     else:
-        all_posts = Posts.objects.all().order_by("-timestamp")
-        paginator = Paginator(all_posts, 10)
-    data = {
-        'posts': [post.serialize(request.user) for post in all_posts[:10]],
-        'count': User.count_followers_and_following(request.user),
-        'requester': {'current_profile': str(load)},
-        'pagination': Paginator(all_posts, 10).num_pages,
-        'pages_left': int(paginator.num_pages)}
-    return JsonResponse(data, safe=False)
+        data = {
+            'data': [Posts.objects.filter(user=request.user).order_by("-timestamp")[:10] if load == 'userprofile' else post.serialize(request.user) for post in Posts.objects.all().order_by("-timestamp")[:10]],
+            'count': User.count_followers_and_following(request.user),
+            'requester': {'current_profile': str(load)},
+            'pages_left': Paginator(Posts.objects.all().order_by("-timestamp"), 10).num_pages}
+        return JsonResponse(data, safe=False)
 
 
 @login_required
@@ -126,7 +116,16 @@ def load_page(request, load):
         paginator = Paginator(Posts.objects.all().order_by("-timestamp"), 10)
     else:
         profile = load_dict['profile']
-        paginator = Paginator(Posts.objects.filter(user=User.objects.get(username=profile)).order_by("-timestamp"), 10)
-    print(int(int(paginator.num_pages) - (load_dict['page'])))
+
+        paginator = Paginator(Posts.objects.filter(
+            user=User.objects.get(username=profile)).order_by("-timestamp"), 10)
+        print(int(paginator.num_pages) - (load_dict['page']))
     return JsonResponse({'data': [post.serialize(request.user) for post in paginator.page(load_dict['page']).object_list],
-                        'pages_left': int(paginator.num_pages) - (load_dict['page'])}, safe=False)
+                        'pages_left': int(paginator.num_pages) - (load_dict['page']),
+                        'username': str(profile)}, safe=False)
+
+@login_required
+def edit_post(request, post_id):
+    if request.method == "PUT":
+        Posts.edit_post(post_id, request.user)
+        return JsonResponse(Posts.objects.get(pk=post_id))

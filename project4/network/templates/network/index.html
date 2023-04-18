@@ -31,13 +31,15 @@
 
 
 <script>
+    // This code sets a listener for when the user navigates back to this page using the browser's back button.
     window.addEventListener('popstate', function () {
         location.reload();
     });
-
+    // This code sets a listener for when the DOM is fully loaded.
     document.addEventListener('DOMContentLoaded', function () {
-
+        // This code sets a listener for when the user clicks the "post-button" element and calls the "create_post" function.
         document.querySelector('#post-button').addEventListener('click', create_post);
+        // This code sets a listener for when the user clicks on either the "profile" or "allposts" element and calls the "load_posts_profile" function.
         document.querySelector('#profile').addEventListener('click', () => load_posts_profile('userprofile'));
         document.querySelector('#allposts').addEventListener('click', () => load_posts_profile('allposts'));
         load_posts_profile('allposts');
@@ -80,6 +82,7 @@
     follow_icon.style.width = '64px';
     follow_icon.style.height = '64px';
     follow_icon.style.cursor = 'pointer';
+    follow_icon.style.display = 'inline-block';
     const csrfToken = document.querySelector('#csrf_token').value;
     follow_icon.setAttribute('data-csrf-token', csrfToken);
     //follow button attribute when clicked runs the follow function
@@ -106,11 +109,11 @@
 
 
 
+
     function page_selection(event) {
         const page_number = event.target;
-
-
         const profileHeader = document.querySelector('#profile_header').innerHTML;
+
         load = {
             'page': (page_number.innerHTML === 'Next') ?
                 parseInt(page_number.parentElement.previousElementSibling.innerText) + 1 :
@@ -119,23 +122,17 @@
                     parseInt(page_number.innerHTML),
             'next_set': (page_number.innerHTML == 'Next'),
             'previous_set': (page_number.innerHTML == 'Previous'),
-            'profile': (profileHeader.slice(-8) === "'s Posts") ? profileHeader.slice(-8) : profileHeader
-
+            'profile': (profileHeader.slice(-8) === "'s Posts") ? profileHeader.slice(0, -8) : profileHeader
         }
-
-
         const jsonString = JSON.stringify(load);
         const encodedData = encodeURIComponent(jsonString);
         fetch(`/load_page/${encodedData}`)
             .then(response => response.json())
-            .then(page => {
-                add_pagination(page, load, windowload = false)
-
-            })
+            .then(page => { add_pagination(page, load, windowload = false) })
     }
 
-    function createNavItem(text, ul, clickHandler) {
 
+    function createNavItem(text, ul, clickHandler) {
         const item = document.createElement('li');
         item.className = 'page-item';
         const link = document.createElement('a');
@@ -144,7 +141,6 @@
         link.addEventListener("click", clickHandler);
         item.appendChild(link);
         ul.appendChild(item);
-
     }
 
     function isAlphabet(char) {
@@ -153,26 +149,21 @@
 
 
     function add_pagination(postdata, pagedata = null, windowload = false) {
-
+        const profileHeader = document.querySelector('#profile_header').innerHTML;
         const allPosts = document.querySelector(".all_posts");
         const nav = document.createElement('nav');
         nav.setAttribute('aria-label', 'Page navigation example');
         const ul = document.createElement('ul');
         ul.className = 'pagination';
-
         createNavItem('Previous', ul, page_selection);
-
         let startPage = windowload ? 1 : postdata.pages_left + 1;
-
         let pagesToShow = Math.min(postdata.pages_left, 5);
+        console.log(pagesToShow);
         if (windowload) {
             for (let i = startPage; i < startPage + pagesToShow; i++) {
-
                 item_element(i, ul, page_selection);
             }
-
-            createNavItem('Next', ul, page_selection);
-
+            if (parseInt(postdata.pages_left) > 5) { createNavItem('Next', ul, page_selection); }
             nav.appendChild(ul);
             allPosts.appendChild(nav);
         }
@@ -180,30 +171,26 @@
         const secondToLast = pageLinks[pageLinks.length - 2];
 
         if (!windowload) {
-            console.log(pagedata);
+
             if (pagedata.next_set === false && pagedata.previous_set === false) {
-                get_data = page_tracker('get_last_number_set', pagedata, postdata, windowload);
-                second_data = page_tracker('get_first_number_set', pagedata, postdata, windowload);
-                counter = get_data.last_num;
-                first_counter = second_data.first_num;
-                console.log(`Second Counter:${counter}`);
-                console.log(`First Counter:${first_counter}`);
-                console.log(`Pages left: ${page_tracker('get_fist_number_set', pagedata, postdata, windowload)}`);
-                console.log(parseInt(pageLinks[pageLinks.length - 2].innerHTML));
+                counter = page_tracker('get_last_number_set', pagedata, postdata, windowload);
+                start = page_tracker('get_first_number_set', pagedata, postdata, windowload);
 
                 load_newpage(postdata, newset = false);
 
-                for (let i = first_counter; i <= counter; i++) {
+                for (let i = start; i <= counter; i++) {
 
                     item_element(i, ul, page_selection);
                 }
-                if (parseInt(postdata.pages_left) + parseInt(pagedata.page) > 5) { createNavItem('Next', ul, page_selection); }
+                if (pagedata.page + parseInt(postdata.pages_left) > counter) { createNavItem('Next', ul, page_selection); }
                 nav.appendChild(ul);
                 allPosts.appendChild(nav);
 
             } else {
-                second_counter = (pagedata.next_set === true) ? Math.min(parseInt(pageLinks[pageLinks.length - 2].innerHTML) + 1 + postdata.pages_left, parseInt(pageLinks[pageLinks.length - 2].innerHTML) + 5) : pagedata.page + 4;
-                first_counter = (pagedata.next_set === true) ? parseInt(pageLinks[pageLinks.length - 2].innerHTML) + 1 : postdata.pages_left;
+
+                second_counter = page_tracker('get_last_number_set', pagedata, postdata, windowload);
+                first_counter = page_tracker('get_first_number_set', pagedata, postdata, windowload);
+
                 console.log(second_counter);
                 load_newpage(postdata, newset = false);
 
@@ -214,7 +201,7 @@
                 console.log(`First Counter:${first_counter}`);
                 console.log(`Second Counter:${second_counter}`);
                 console.log(`Pages Left:${postdata.pages_left}`);
-                if (parseInt(postdata.pages_left) + parseInt(pagedata.page) > 5) { createNavItem('Next', ul, page_selection); }
+                if (pagedata.page + parseInt(postdata.pages_left) > second_counter) { createNavItem('Next', ul, page_selection); }
 
                 nav.appendChild(ul);
                 allPosts.appendChild(nav);
@@ -223,20 +210,38 @@
     }
 
 
-    function page_tracker(query, pagedata, postdata, windowload){
-       const pageLinks = document.querySelectorAll('.page-link');
+    function page_tracker(query, pagedata, postdata, windowload) {
+        const pageLinks = document.querySelectorAll('.page-link');
 
-        if (query === `get_last_number_set`){
-        return {'last_num': pagedata.page <= parseInt(isAlphabet(pageLinks[pageLinks.length - 1].innerHTML[0]) ? pageLinks[pageLinks.length - 2].innerHTML : 
-        pageLinks[pageLinks.length - 1].innerHTML) ? parseInt(isAlphabet(pageLinks[pageLinks.length - 1].innerHTML[0]) ? pageLinks[pageLinks.length - 2].innerHTML : 
-        pageLinks[pageLinks.length - 1].innerHTML) : pagedata.page + postdata.pages_left + 1}}
-
-        if (query === `get_first_number_set` && !windowload){
-                    console.log(`page link length: ${pageLinks.length}`);
-            return  pageLinks.length === 7 ? {'first_num': pageLinks[pageLinks.length - 6].innerHTML[0]} : {'first_num': parseInt(isAlphabet(pageLinks[0].innerHTML[0])) ? pageLinks[1].innerHTML: pageLinks[0].innerHTML}}
+        if (query === `get_last_number_set`) {
+            return (pagedata.next_set === true)
+                ? Math.min(
+                    parseInt(pageLinks[pageLinks.length - 2].innerHTML) + 1 + postdata.pages_left,
+                    parseInt(pageLinks[pageLinks.length - 2].innerHTML) + 5
+                )
+                : (pagedata.previous_set === true)
+                    ? pagedata.page + 4 :
+                    pagedata.page <=
+                        parseInt(
+                            isAlphabet(pageLinks[pageLinks.length - 1].innerHTML[0])
+                                ? pageLinks[pageLinks.length - 2].innerHTML
+                                : pageLinks[pageLinks.length - 1].innerHTML)
+                        ? parseInt(
+                            isAlphabet(pageLinks[pageLinks.length - 1].innerHTML[0])
+                                ? pageLinks[pageLinks.length - 2].innerHTML :
+                                pageLinks[pageLinks.length - 1].innerHTML) :
+                        pagedata.page + postdata.pages_left + 1
         }
+        if (query === `get_first_number_set` && !windowload) {
+            return (pagedata.next_set === true)
+                ? parseInt(pageLinks[pageLinks.length - 2].innerHTML) + 1
+                : (pagedata.previous_set === true) ? pagedata.page
+                    : isAlphabet(pageLinks[0].innerHTML[0]) ? pageLinks[1].innerHTML
+                        : pageLinks[0].innerHTML
+        }
+    }
 
-    
+
 
 
     function item_element(i, ul, page_selection) {
@@ -281,21 +286,21 @@
     }
 
 
-    function create_post() {
-        var comment = document.querySelector('#compose-comment').value;
-        var csrfToken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
-        fetch('/create_post', {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': csrfToken
-            },
-            body: JSON.stringify({
-                comment: comment
+        function create_post() {
+            var comment = document.querySelector('#compose-comment').value;
+            var csrfToken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
+            fetch('/create_post', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({
+                    comment: comment
+                })
             })
-        })
-        document.querySelector('#compose-comment').value = '';
-        load_posts_profile("userprofile")
-    }
+            document.querySelector('#compose-comment').value = '';
+            load_posts_profile("userprofile")
+        }
 
 
     function like_post(id) {
@@ -306,7 +311,7 @@
                 'X-CSRFToken': csrfToken
             },
             body: JSON.stringify({
-            post_id: id
+                post_id: id
             })
         })
             .then(response => response.json())
@@ -316,8 +321,42 @@
             })
 
     }
+    let previous = 0;
+    function open_edit(id) {
+        const edit_dot = document.getElementById(`${id}`);
 
-    //the load posts should be (modify the load_posts function to take a value)broken down so all posts show up and when user profile is clicked it shows the followers and following. if another user is
+
+        // Check if an element with the 'edit_button_div' class already exists
+        var existing_edit_div = document.querySelector('.edit_button_div');
+        console.log(existing_edit_div);
+
+        if (existing_edit_div && edit_dot.dataset.value === "1") { existing_edit_div.remove(); edit_dot.dataset.value = 0; return; }
+
+        if (existing_edit_div && edit_dot.dataset.value === "0" && edit_dot.id != previous) { existing_edit_div.remove(); document.getElementById(`${previous}`).dataset.value = 0; }
+
+        // If it exists, remove the existing 'edit_button_div'
+        if (edit_dot.dataset.value === "0") {
+            if (existing_edit_div) { existing_edit_div.remove(); }
+
+            let edit_div = document.createElement("div");
+            edit_div.className = 'edit_button_div';
+            edit_dot.dataset.value = "1";
+            edit_dot.append(edit_div);
+            previous = edit_dot.id;
+            return;
+        }
+
+        // Create and append a new 'edit_button_div'
+        let edit_div = document.createElement("div");
+        edit_div.className = 'edit_button_div';
+        edit_dot.dataset.value = "1";
+        edit_dot.append(edit_div);
+        previous = edit_dot.id;
+        return;
+
+
+    }
+
     //visiting the page it should add follow user option
     function load_posts_profile(load) {
         document.querySelector(".all_posts").innerHTML = '';
@@ -327,6 +366,7 @@
             .then(response => response.json())
             .then(posts => {
                 var profile = document.getElementById("profile_header");
+                profile.style.display = 'inline-block';
                 var useraccount = document.getElementById("username");
                 console.log(posts.pagination);
                 // Get a reference to the 'Followers' section by its id
@@ -345,60 +385,43 @@
                     document.querySelector("#profile_header").value = load;
 
                     if (posts.requester.current_profile != useraccount.innerHTML) {
-                        profile.append(follow_icon);
+                        profile.insertAdjacentElement('afterend', follow_icon);
                     }
                 } else {
                     document.querySelector("#profile_header").innerText = "All Posts";
                 }
 
-                posts.posts.forEach((element, index) => {
-                    let line = document.createElement('div');
-                    let post_user = document.createElement('a');
-                    post_user.style.color = '#007bff';
-                    post_user.className = "post_user";
-                    post_user.style.cursor = 'pointer';
-                    post_user.style.textDecoration = 'underline';
-                    post_user.innerHTML = element.user;
-                    post_user.setAttribute('onclick', `load_posts_profile("${element.user}")`);
-
-                    let count_likes = document.createElement('span');
-                    count_likes.textContent = element.post_likes;
-
-                    line.className = "post";
-                    line.id = `post_${element.id}`;
-                    like_button_unlike.setAttribute('onclick', `like_post(${element.id})`);
-                    like_button_unlike.setAttribute('data-csrf-token', csrfToken);
-                    line.append(post_user);
-
-                    line.innerHTML +=
-                        `<span class="time_stamp">${element.timestamp}</span>
-                        <div class="post_string">${element.post}</div>`;
-                    line.append(like_button_unlike, count_likes);
-
-                    document.querySelector(".all_posts").innerHTML += line.outerHTML;
-                    document.querySelector(`#post_${element.id} path:nth-of-type(1)`).setAttribute('d', element.current_user_like ? 'M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z' : 'm8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z');
-
-                });
+                load_newpage(posts, true);
                 //appends pagitation html elmemnts after the DOM loads all the posts
                 add_pagination(posts, undefined, true);
             })
     }
 
     function load_newpage(postdata, newset) {
-        //TODO only remove if a new set of page is being loaded
+        if (newset != true) {
 
-        const posts = document.querySelectorAll('.post');
-        posts.forEach(link => {
-            link.remove();
-        });
-        document.querySelector('[aria-label="Page navigation example"]').remove();
-        const page_selection_elemement = document.querySelectorAll('.page-item');
-        page_selection_elemement.forEach(link => {
-            link.remove();
-        });
-
+            const posts = document.querySelectorAll('.post');
+            posts.forEach(link => {
+                link.remove();
+            });
+            document.querySelector('[aria-label="Page navigation example"]').remove();
+            const page_selection_elemement = document.querySelectorAll('.page-item');
+            page_selection_elemement.forEach(link => {
+                link.remove();
+            });
+        }
         postdata.data.forEach((element, index) => {
+
+            let dots = document.createElement("span");
+            dots.className = 'edit_button';
+            dots.innerHTML = "⋮";
+            dots.setAttribute('onclick', `open_edit(${element.id})`);
+            dots.dataset.value = "0";
+            dots.id = element.id;
             let line = document.createElement('div');
+            let time_stamp = document.createElement('span');
+            time_stamp.className = "time_stamp";
+            time_stamp = element.timestamp;
             let post_user = document.createElement('a');
             post_user.style.color = '#007bff';
             post_user.className = "post_user";
@@ -406,7 +429,9 @@
             post_user.style.textDecoration = 'underline';
             post_user.innerHTML = element.user;
             post_user.setAttribute('onclick', `load_posts_profile("${element.user}")`);
-
+            let post = document.createElement('div');
+            post.className = 'post_string';
+            post.innerHTML = element.post;
             let count_likes = document.createElement('span');
             count_likes.textContent = element.post_likes;
 
@@ -415,16 +440,16 @@
             like_button_unlike.setAttribute('onclick', `like_post(${element.id})`);
             like_button_unlike.setAttribute('data-csrf-token', csrfToken);
             line.append(post_user);
-
-            line.innerHTML +=
-                `<span class="time_stamp">${element.timestamp}</span>
-                        <div class="post_string">${element.post}</div>`;
-            line.append(like_button_unlike, count_likes);
+            line.append(time_stamp, dots, post, like_button_unlike, count_likes);
 
             document.querySelector(".all_posts").innerHTML += line.outerHTML;
             document.querySelector(`#post_${element.id} path:nth-of-type(1)`).setAttribute('d', element.current_user_like ? 'M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z' : 'm8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z');
+
+
+
         })
     }
+
 
 </script>
 {% endblock %}
