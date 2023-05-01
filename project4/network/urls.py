@@ -12,7 +12,8 @@ urlpatterns = [
     path("create_post", views.create_post, name="create_post"),
     path("like_post/<int:post_id>", views.like_post, name="like_post"),
     path("follow/<str:username>", views.follow, name="follow"),
-    path("load_page/<str:load>", views.load_page, name="load_page")
+    path("load_page/<str:load>", views.load_page, name="load_page"),
+    path("submit", views.edit_post, name="submit")
     
     
 

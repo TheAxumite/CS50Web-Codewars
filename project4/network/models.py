@@ -4,6 +4,7 @@ import json
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db.utils import IntegrityError
 
+
 class User(AbstractUser):
     followers = models.ManyToManyField(
         "self", related_name="list_of_followers", blank=True, symmetrical=False)
@@ -11,15 +12,15 @@ class User(AbstractUser):
         "self", related_name="list_of_following", blank=True, symmetrical=False)
 
     @classmethod
-    def follow_unfollow(cls, username, profile):
-        user = User.objects.get(username=username)
-        target_profile = User.objects.get(username=profile)
+    def follow_unfollow(cls, target, currentprofile):
+        user = User.objects.get(username=currentprofile)
+        target_profile = User.objects.get(username=target)
 
-        if target_profile in user.followers.all():
+        if target_profile.username in user.followers.all():
             return {"followers": True}
         else:
-            user.followers.add(target_profile)
-            target_profile.following.add(user)
+            user.following.add(target_profile)
+            target_profile.followers.add(user)
             return {"followers": user.followers.count()}
 
     def check_following(self, profile_id):
@@ -31,44 +32,69 @@ class User(AbstractUser):
         count = User.objects.get(username=user)
         return {"followers": count.followers.count(), "following": count.following.count()}
 
+    def following_list(self):
+        followinglist = User.objects.get(id=self.id)
+        return followinglist.following
+
 
 class Posts(models.Model):
     user = models.ForeignKey(
         "User", on_delete=models.CASCADE, related_name="poster")
     timestamp = models.DateTimeField(auto_now_add=True)
     post = models.TextField()
+    original_post = models.BooleanField(default=True)
     post_likes = models.ManyToManyField(
         "User", related_name="list_of_post_likes")
+    parent_comment = models.OneToOneField(
+        "self", null=True, blank=True, on_delete=models.CASCADE, related_name="parent")
+    child_comments = models.ForeignKey(
+        "self", null=True, blank=True, on_delete=models.CASCADE, related_name="child_comments_lists")
 
     @classmethod
     def add_post(cls, post, user):
         return cls.objects.create(post=post, user=user)
 
     @classmethod
-    def like_post(cls, post, user):
-        if user in cls.objects.get(pk=post).post_likes.all():
-            post = cls.objects.get(pk=post)
-            post.post_likes.remove(user)
-            return {"liked": True, "like_count": post.post_likes.count()}
-        post = cls.objects.get(pk=post)
-        post.post_likes.add(user)
-        return {"liked": False, "like_count": post.post_likes.count()}
-    
+    def add_comment(cls, post, parent_id, user):
+        parent_post = Posts.objects.get(pk=parent_id)
+        child_comment = cls.objects.create(
+            post=post, user=user, original_post=False, parent_comment=parent_post)
+        parent_post.child_comments.add(child_comment)
+        return child_comment
 
     @classmethod
-    def edit_post(cls, update, user):
+    def CommentCount(cls, id):
+        return int(cls.objects.get(pk=id).child_comments.count())
+
+    @classmethod
+    def load_comment(cls, id):
+        post = Posts.objects.get(pk=id)
+
+    @classmethod
+    def like_post(cls, post_id, user):
+        post = cls.objects.get(pk=post_id)
+        
+        if user in post.post_likes.all():
+            post.post_likes.remove(user)
+            return {"liked": True, "like_count": post.post_likes.count()}
+        else:
+            post.post_likes.add(user)
+            return {"liked": False, "like_count": post.post_likes.count()}
+
+    @classmethod
+    def edit_post(cls, id, updated_post):
         try:
-            post = cls.objects.get(pk=post)
-            post.post = update
+            post = cls.objects.get(pk=id)
+            post.post = updated_post
+            post.save()
             post.full_clean()
-            post.save
+            return cls.objects.get(pk=id).post
         except ObjectDoesNotExist:
             return "Post has been deleted"
         except ValidationError as e:
             return f"Validation error: {e}"
         except IntegrityError as e:
             return f"Integrity error: {e}"
-
 
     def serialize(self, user):
         if user in self.post_likes.all():
@@ -82,7 +108,6 @@ class Posts(models.Model):
             "post_likes": self.post_likes.count(),
             "timestamp": self.timestamp.strftime("%b %d %Y, %I:%M %p"),
             "current_user_like": likes}
-
 
 
 class Comments(models.Model):

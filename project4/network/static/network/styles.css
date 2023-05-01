@@ -27,6 +27,37 @@ h1 {
 
 }
 
+.edit-submit {
+    background-color: transparent;
+
+    border-width: 0px;
+    padding: 10px;
+    margin-left: .5em;
+    right: 0px;
+    border-radius: 15px;
+    color: white;
+}
+
+.edit-cancel {
+    background-color: transparent;
+
+    border-width: 0px;
+    padding: 10px;
+    right: 0px;
+    color: white;
+    border-radius: 15px;
+}
+
+.edit-submit:hover,
+.edit-cancel:hover {
+    background-color: #37373a;
+}
+
+.button-group {
+    display: flex;
+    justify-content: flex-end;
+
+}
 
 /* Specific styles for elements */
 #new_posts {
@@ -42,8 +73,19 @@ h1 {
     color: #b1b1b1;
 }
 
+.edit_field {
+    display: block;
+    width: 100%;
+    min-height: 30px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    margin-bottom: 1em;
+}
+
 .edit_button_div {
     position: absolute;
+
     top: 0px;
     right: -170px;
     width: 150px;
@@ -91,13 +133,53 @@ h1 {
 
 .edit_button {
     position: absolute;
-    right: 0px;
+    right: 10px;
     font-size: larger;
     margin: 0 auto;
-    margin-right: 1em;
+    margin-left: 1em;
     cursor: pointer;
 }
 
+.reply-button {
+    display: inline-flex;
+    font-size: small;
+    font-weight: bolder;
+    margin-left: 20px;
+    cursor: pointer;
+    padding: 10px;
+}
+
+.reply-button:hover {
+    border-radius: 10px;
+    background-color: rgb(97, 97, 97);
+}
+
+.replies-div{
+    
+    color: #007bff;
+    font-size: small;
+    font-weight: bolder;
+    cursor: pointer;
+    z-index: 9999;
+   
+   
+
+}
+.reply-text{
+   
+    margin-top: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-right: 15px;
+    padding-left: 15px;
+}
+.reply-text:hover{
+    
+    background-color: #007bff38;
+    z-index: 0;
+    border-radius: 10px;
+   
+}
 #compose-post {
     max-width: 600px;
     margin: 0 auto;
@@ -163,18 +245,33 @@ h2 {
 }
 
 .all_posts:hover {
-    position: relative; 
+    position: relative;
     background-color: #00000052;
 }
 
-.post {
+.edit {
     position: relative;
-    max-width: 800px;
+    width: 800px;
     margin: 0 auto;
     text-align: left;
     margin-top: 1em;
     margin-bottom: 1em;
 
+    background-color: 'white';
+    padding: 1em;
+    border-radius: 5px;
+    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.1);
+}
+
+.post {
+    
+    position: relative;
+    max-width: auto;
+    margin: 0 auto;
+    text-align: left;
+    margin-top: 1em;
+    margin-bottom: 1em;
+    height: auto;
     background-color: #00000052;
     padding: 1em;
     border-radius: 5px;
@@ -206,24 +303,22 @@ h2 {
 }
 
 .post:hover {
-    position: relative;
-    animation: color-change 1s ease;
-    background-color: #ffffff;
-    color: black;
-    box-shadow: 0 5px 5px rgba(255, 255, 255, 0.1);
-    transform: scalex(1.002);
+
+    box-shadow: 5px 5px 5px rgba(255, 255, 255, 0.1);
+    transform: scalex(1.003);
 
 }
 
 .like_button {
-
+    display: inline;
     color: #ffffff;
     padding: .1em .26em;
     border: none;
     border-radius: 50%;
     font-size: 1em;
     cursor: pointer;
-    margin: 5px;
+    margin-right: 5px;
+    margin-bottom: 10px;
     width: 30px;
     height: 30px;
     background-color: #00000052;
@@ -232,4 +327,14 @@ h2 {
 
 .like_button:hover {
     background-color: #00000052;
+}
+
+
+#overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
 }
