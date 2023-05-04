@@ -69,7 +69,7 @@ def register(request):
 def load_posts(request, load):
     if load.isalpha() and load != "allposts":
 
-        queryset = Posts.objects.filter(user=User.objects.get(username = load)).order_by("-timestamp")
+        queryset = Posts.objects.filter(user=User.objects.get(username = load), originalpost = True).order_by("-timestamp")
         paginator = Paginator(queryset, 10)
         posts = paginator.get_page(1) 
 
@@ -83,7 +83,7 @@ def load_posts(request, load):
     
     else:
 
-        queryset =  Posts.objects.all().order_by("-timestamp")
+        queryset =  Posts.objects.filter(originalpost = True).order_by("-timestamp")
         paginator = Paginator(queryset, 10)
         posts = paginator.get_page(1) 
 
@@ -136,13 +136,10 @@ def follow(request, username):
 def load_page(request, load):
     load_dict = json.loads(load)
     if load_dict['profile'] == 'All Posts':
-        profile = request.user
+       
         paginator = Paginator(Posts.objects.all().order_by("-timestamp"), 10)
     else:
-        profile = load_dict['profile']
-
-        paginator = Paginator(Posts.objects.filter(
-            user=User.objects.get(username=profile)).order_by("-timestamp"), 10)
+        paginator = Paginator(Posts.objects.filter(user=User.objects.get(username=load_dict['profile'])).order_by("-timestamp"), 10)
         
     return JsonResponse({'data': [post.serialize(request.user) for post in paginator.page(load_dict['page']).object_list],
                         'pages_left': int(paginator.num_pages) - (load_dict['page']),
@@ -181,7 +178,11 @@ def following_post(request):
 def post_comment(request):
     if request.method == 'POST':
         data = json.loads(request.body)
+        return JsonResponse({'CommentData':[post.serialize(request.user) for post in Posts.addComment(data.get("post_comment"), data.get("parent_id"), request.user)]}, safe=False)
 
-        Posts.add_comment(data.get("post_comment"), data.get("parent_id"), request.user)
 
-
+@login_required
+def load_comments(request):
+     if request.method == "POST":
+        post_id = json.loads(request.body)
+        
