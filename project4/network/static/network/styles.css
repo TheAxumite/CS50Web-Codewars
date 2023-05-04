@@ -74,12 +74,17 @@ h1 {
 }
 
 .edit_field {
-    display: block;
+    overflow: hidden;
     width: 100%;
-    min-height: 30px;
+    border-top: 0;
+    border-left: 0;
+    border-right: 0;
     padding: 10px;
-    border: 1px solid #ccc;
-    box-sizing: border-box;
+    resize: none;
+    color: white;
+    background-color:transparent;
+    border-bottom: 1px solid #ccc;
+    
     margin-bottom: 1em;
 }
 
@@ -256,8 +261,7 @@ h2 {
     text-align: left;
     margin-top: 1em;
     margin-bottom: 1em;
-
-    background-color: 'white';
+    background-color: white;
     padding: 1em;
     border-radius: 5px;
     box-shadow: 0 2px 2px rgba(0, 0, 0, 0.1);

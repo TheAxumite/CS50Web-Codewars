@@ -34,6 +34,7 @@ class User(AbstractUser):
 
     def following_list(self):
         followinglist = User.objects.get(id=self.id)
+
         return followinglist.following
 
 
@@ -42,29 +43,29 @@ class Posts(models.Model):
         "User", on_delete=models.CASCADE, related_name="poster")
     timestamp = models.DateTimeField(auto_now_add=True)
     post = models.TextField()
-    original_post = models.BooleanField(default=True)
-    post_likes = models.ManyToManyField(
-        "User", related_name="list_of_post_likes")
-    parent_comment = models.OneToOneField(
+    originalpost = models.BooleanField(default=True)
+    postlikes = models.ManyToManyField(
+        "User", related_name="list_of_post_likes", blank=True)
+    parentcomment = models.OneToOneField(
         "self", null=True, blank=True, on_delete=models.CASCADE, related_name="parent")
-    child_comments = models.ForeignKey(
-        "self", null=True, blank=True, on_delete=models.CASCADE, related_name="child_comments_lists")
+    childcomments = models.ManyToManyField(
+        "self", related_name="ListofChildComments", blank=True, symmetrical=False)
 
     @classmethod
     def add_post(cls, post, user):
         return cls.objects.create(post=post, user=user)
 
     @classmethod
-    def add_comment(cls, post, parent_id, user):
+    def addComment(cls, post, parent_id, user):
         parent_post = Posts.objects.get(pk=parent_id)
         child_comment = cls.objects.create(
             post=post, user=user, original_post=False, parent_comment=parent_post)
-        parent_post.child_comments.add(child_comment)
+        parent_post.childcomments.add(child_comment)
         return child_comment
 
     @classmethod
     def CommentCount(cls, id):
-        return int(cls.objects.get(pk=id).child_comments.count())
+        return int(cls.objects.get(pk=id).childcomments.count())
 
     @classmethod
     def load_comment(cls, id):
@@ -74,12 +75,12 @@ class Posts(models.Model):
     def like_post(cls, post_id, user):
         post = cls.objects.get(pk=post_id)
         
-        if user in post.post_likes.all():
-            post.post_likes.remove(user)
-            return {"liked": True, "like_count": post.post_likes.count()}
+        if user in post.postlikes.all():
+            post.postlikes.remove(user)
+            return {"liked": True, "like_count": post.postlikes.count()}
         else:
-            post.post_likes.add(user)
-            return {"liked": False, "like_count": post.post_likes.count()}
+            post.postlikes.add(user)
+            return {"liked": False, "like_count": post.postlikes.count()}
 
     @classmethod
     def edit_post(cls, id, updated_post):
@@ -97,7 +98,7 @@ class Posts(models.Model):
             return f"Integrity error: {e}"
 
     def serialize(self, user):
-        if user in self.post_likes.all():
+        if user in self.postlikes.all():
             likes = True
         else:
             likes = False
@@ -105,9 +106,10 @@ class Posts(models.Model):
             "id": self.id,
             "user": self.user.username,
             "post": self.post,
-            "post_likes": self.post_likes.count(),
+            "post_likes": self.postlikes.count(),
             "timestamp": self.timestamp.strftime("%b %d %Y, %I:%M %p"),
-            "current_user_like": likes}
+            "current_user_like": likes,
+            'replies': self.childcomments.count()}
 
 
 class Comments(models.Model):
