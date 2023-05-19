@@ -3,6 +3,7 @@ from django.db import models
 import json
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db.utils import IntegrityError
+from django.db.models import Q
 
 
 class User(AbstractUser):
@@ -32,10 +33,12 @@ class User(AbstractUser):
         count = User.objects.get(username=user)
         return {"followers": count.followers.count(), "following": count.following.count()}
 
-    def following_list(self):
-        followinglist = User.objects.get(id=self.id)
 
-        return followinglist.following
+
+
+
+
+
 
 
 class Posts(models.Model):
@@ -46,7 +49,7 @@ class Posts(models.Model):
     originalpost = models.BooleanField(default=True)
     postlikes = models.ManyToManyField(
         "User", related_name="list_of_post_likes", blank=True)
-    parentcomment = models.OneToOneField(
+    parentcomment = models.ForeignKey(
         "self", null=True, blank=True, on_delete=models.CASCADE, related_name="parent")
     childcomments = models.ManyToManyField(
         "self", related_name="ListofChildComments", blank=True, symmetrical=False)
@@ -57,24 +60,24 @@ class Posts(models.Model):
 
     @classmethod
     def addComment(cls, post, parent_id, user):
-        parent_post = Posts.objects.get(pk=parent_id)
-        child_comment = cls.objects.create(
-            post=post, user=user, original_post=False, parent_comment=parent_post)
-        parent_post.childcomments.add(child_comment)
-        return child_comment
+        parentpost = Posts.objects.get(pk=parent_id)
+        childcomment = cls.objects.create(
+            post=post, user=user, originalpost=False, parentcomment=parentpost)
+        parentpost.childcomments.add(childcomment)
+        return childcomment
 
     @classmethod
     def CommentCount(cls, id):
         return int(cls.objects.get(pk=id).childcomments.count())
 
     @classmethod
-    def load_comment(cls, id):
-        post = Posts.objects.get(pk=id)
+    def LoadChldComments(cls, id):
+        return cls.objects.filter(parentcomment=id).order_by("timestamp")
 
     @classmethod
     def like_post(cls, post_id, user):
         post = cls.objects.get(pk=post_id)
-        
+
         if user in post.postlikes.all():
             post.postlikes.remove(user)
             return {"liked": True, "like_count": post.postlikes.count()}
@@ -96,6 +99,26 @@ class Posts(models.Model):
             return f"Validation error: {e}"
         except IntegrityError as e:
             return f"Integrity error: {e}"
+        
+    @classmethod
+    def following_list(cls, currentuser):
+        # Get the list of usernames that the current user is following
+        user = User.objects.get(
+            username=currentuser).list_of_following.values_list('pk', flat=True)
+        # Old Code for reference
+        """query = Q()  # Initialize an empty Q object
+        # Add conditions for each username in the following list
+        for username in following_usernames :
+            # Combine Q objects using |= (in-place bitwise OR assignment)
+            query |= Q(user=username)
+        print(query)
+        # Use the query Q object to filter users
+        following_users = Posts.objects.filter(user = query).order_by("-timestamp")"""
+
+        """The __in lookup in Django is equivalent to the SQL IN clause. When used in a Django ORM query, 
+        it generates SQL that matches any object where the specified field's value is in the provided list."""
+        return cls.objects.filter(user__in=user).order_by("-timestamp")
+
 
     def serialize(self, user):
         if user in self.postlikes.all():
@@ -109,30 +132,10 @@ class Posts(models.Model):
             "post_likes": self.postlikes.count(),
             "timestamp": self.timestamp.strftime("%b %d %Y, %I:%M %p"),
             "current_user_like": likes,
-            'replies': self.childcomments.count()}
+            "parentcomment": str(self.parentcomment),
+            "ParentRepliesCount": Posts.objects.filter(parentcomment=self.parentcomment).order_by("-timestamp").count(),
+            'replies': self.childcomments.count(),
+            'currentprofile': True if self.user.username == user else False}
 
 
-class Comments(models.Model):
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="commenter")
-    comment = models.TextField()
-    post = models.ForeignKey(Posts, on_delete=models.CASCADE)
-    likes = models.ManyToManyField(User, related_name="list_of_likes")
 
-    @classmethod
-    def list_comments(cls, post_id):
-        return cls.objects.filter(post=post_id)
-
-    @classmethod
-    def post_comment(cls, comment, user, post):
-        return cls.objects.create(comment=comment, user=user, post=post)
-
-    @classmethod
-    def like_comment(cls, user, comment_id):
-        comment_to_like = Comments.objects.get(pk=comment_id)
-        comment_to_like.likes.add(user)
-
-    @classmethod
-    def unlike_comment(cls, user, comment_id):
-        comment_to_like = Comments.objects.get(pk=comment_id)
-        comment_to_like.likes.remove(user)

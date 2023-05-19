@@ -4,7 +4,15 @@ body {
     margin: 0;
     padding: 0;
     background-color: #37373a;
+    
 }
+.container-fluid.dark-container {
+    height: 100%;
+  }
+.dark-container {
+    background-color: #333;
+    color: #fff; /* Optional: Set text color for better visibility */
+  }
 
 #profile_header {
     color: #ffffff;
@@ -79,13 +87,13 @@ h1 {
     border-top: 0;
     border-left: 0;
     border-right: 0;
-    padding: 10px;
+    padding: 1px;
     resize: none;
     color: white;
     background-color:transparent;
     border-bottom: 1px solid #ccc;
     
-    margin-bottom: 1em;
+    margin-bottom: 0em;
 }
 
 .edit_button_div {
@@ -106,7 +114,10 @@ h1 {
     align-items: center;
     justify-content: center;
 }
-
+.child-comment{
+    margin-bottom: 2em;
+    
+}
 #compose-comment {
     margin-bottom: 1em;
 }
@@ -145,6 +156,15 @@ h1 {
     cursor: pointer;
 }
 
+
+.child-edit-button{
+    position: absolute;
+    right: 10px;
+    font-size: larger;
+    margin: 0 auto;
+    cursor: pointer;
+}
+
 .reply-button {
     display: inline-flex;
     font-size: small;
@@ -178,6 +198,7 @@ h1 {
     padding-right: 15px;
     padding-left: 15px;
 }
+.reply-text-child{padding: 20px;}
 .reply-text:hover{
     
     background-color: #007bff38;
@@ -283,7 +304,16 @@ h2 {
     color: white;
 
 }
+.post-child {
+    margin-top: 1em;
+    position: relative;
+    max-width: auto;
+    text-align: left;
+    height: auto;
+    background-color:transparent;
+    color: white;
 
+}
 @keyframes color-change {
     0% {
         position: relative;
@@ -341,4 +371,9 @@ h2 {
     width: 100%;
     height: 100%;
     z-index: -1;
+}
+
+.page-item {
+    background-color: #232324;
+    color: black;
 }
