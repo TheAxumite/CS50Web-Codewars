@@ -37,10 +37,6 @@ class User(AbstractUser):
 
 
 
-
-
-
-
 class Posts(models.Model):
     user = models.ForeignKey(
         "User", on_delete=models.CASCADE, related_name="poster")
