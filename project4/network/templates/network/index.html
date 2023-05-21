@@ -574,12 +574,16 @@
     function remove_edit(childcomment = false, id = null, currentprofile = null) {
 
         if (childcomment === true) {
-            let previous_post = document.querySelector(`#post_${id}`);
+            
+            let previous_post = document.querySelector(`${current_edit.id}`);
+            
+            console.log(previous_post)
             if (previous_post) {
                 // Get all children elements of previous_post
                 let childcomment = previous_post.querySelector('.child-comment');
                 // Check if there are at least two children elements
                 if (childcomment) {
+                    
                     // Get the second-to-last element
                     childcomment.remove();
                 }
@@ -588,6 +592,8 @@
         }
 
         let previous_post = document.querySelector(`${current_edit.id}`);
+        console.log('hi')
+        console.log(previous_post)
         if (previous_post) {
             previous_post.innerHTML = current_edit.innerhtml;
             if (currentprofile == true || currentprofile == null) {
