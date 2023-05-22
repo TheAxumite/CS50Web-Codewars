@@ -38,7 +38,11 @@
 
 
 
+{% block script %}
 
+<script  src="{% static 'network/pagination.js' %}"></script> 
+<script  src="{% static 'network/PostUI.js' %}"></script> 
+{% endblock %}
 
 <script>
 
@@ -48,6 +52,7 @@
     });
     // This code sets a listener for when the DOM is fully loaded.
     document.addEventListener('DOMContentLoaded', function () {
+       
         // This code sets a listener for when the user clicks the "post-button" element and calls the "create_post" function.
         document.querySelector('#post-button').addEventListener('click', create_post);
         // This code sets a listener for when the user clicks on either the "profile" or "allposts" element and calls the "load_posts_profile" function.
@@ -124,13 +129,13 @@
         this.style.width = '64px';
     };
 
-    function createNavItem(text, ul, clickHandler) {
+    function createNavItem(text, ul) {
         const item = document.createElement('li');
         item.className = 'page-item';
         const link = document.createElement('a');
         link.className = 'page-link';
         link.innerText = text;
-        link.addEventListener("click", clickHandler);
+        link.addEventListener("click", PageTracker.page_selection);
         item.appendChild(link);
         ul.appendChild(item);
     }
@@ -186,72 +191,7 @@
 
             })
     }
-    //TODO: Function  need to be modified for child comments a bit. Remove div and append on the Post Div instead
-    function CreatePostUI(element, CurrentUserData, childcomment = false, ChildCommentPage = 1) {
-        let dots = document.createElement("span");
-        dots.className = childcomment ? 'child-edit-button' : 'edit_button';
-        dots.innerHTML = "⋮";
-        dots.setAttribute('onclick', `open_edit(${element.id}, ${childcomment})`);
-        dots.dataset.value = "0";
-        dots.id = element.id;
-        let line = document.createElement('div');
-        let time_stamp = document.createElement('span');
-        time_stamp.className = "time_stamp";
-        time_stamp = element.timestamp;
-        let post_user = document.createElement('a');
-        post_user.style.color = '#007bff';
-        post_user.className = "post_user";
-        post_user.style.cursor = 'pointer';
-        post_user.style.textDecoration = 'underline';
-        post_user.innerHTML = element.user;
-        post_user.setAttribute('onclick', `load_posts_profile("${element.user}")`);
-        let post = document.createElement('div');
-        post.className = 'post_string';
-        post.innerHTML = element.post;
-        let count_likes = document.createElement('span');
-        count_likes.className = 'like-counter';
-        count_likes.textContent = element.post_likes;
-        line.className = childcomment ? "post-child" : "post";
-        line.id = `post_${element.id}`;
-
-        //Create Reply Button 
-        let reply = document.createElement('span');
-        reply.innerText = 'Reply';
-        reply.className = 'reply-button';
-        reply.setAttribute('onclick', `create_edit_field(${element.id}, childcomment = true)`)
-
-        //Replies button for viewing all comments
-        let replies = document.createElement('div');
-        replies.className = 'replies-div';
-        replies.dataset.value = '0';
-        //Create a span element for containing the 'Replies' string
-        let replytext = document.createElement('span');
-        replytext.className = 'reply-text';
-
-        replytext.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-down-fill" viewBox="0 0 16 16">
-                                <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
-                                </svg>`;
-        replytext.innerHTML += `<span class = 'reply-text-child'>${element.replies} Replies</span>`;
-        replytext.setAttribute('onclick', `LoadChildComments(${element.id}, ${ChildCommentPage})`)
-        replies.append(replytext);
-        //create child comment Container if the UI being created is for an original
-        if (childcomment === false) {
-            childcommentDiv = document.createElement('span');
-            childcommentDiv.className = 'child-comment-container';
-            var rect = replies.getBoundingClientRect();
-            childcommentDiv.style.position = "relative";
-            childcommentDiv.style.left = (rect.left + 15) + 'px';
-        }
-
-        line.append(post_user);
-        if (element.user === CurrentUserData) {
-            line.append(time_stamp, dots, post, CreateHeart(element.id, element.current_user_like), count_likes, reply, replies, childcomment ? '' : childcommentDiv);
-        }
-        else {
-            line.append(time_stamp, post, CreateHeart(element.id, element.current_user_like), count_likes, reply, replies, childcomment ? '' : childcommentDiv);
-        }
-        return line;
-    }
+    
 
 
 
@@ -274,100 +214,28 @@
 
 
 
+    
 
-    function add_pagination(postdata, pagedata = null, windowload = false, following= true) {
-        //clear variable
-        current_edit = '';
-
-        // Get the container for all posts and create a new navigation element.
-        const allPosts = document.querySelector(".all_posts");
-
-        const nav = document.createElement('nav');
-        nav.setAttribute('aria-label', 'Page navigation example');
-        const ul = document.createElement('ul');
-        ul.className = 'pagination justify-content-center';
-
-        // Add a 'Previous' navigation item to the unordered list if page number is greater than 1
-        if (pagedata) {
-            if (pagedata.page > 1) {
-                createNavItem('Previous', ul, PageTracker.page_selection);
-            }
-        }
-
-
-        // Determine the starting page number depending on whether the window has just loaded or not.
-        let startPage = windowload ? 1 : postdata.pages_left + 1;
-        //Determine if the amount of pages left is less than 5
-        let pagesToShow = Math.min(postdata.pages_left, 5);
-
-        // If the window has just loaded, create the pagination items and add them to the unordered list.
-        if (windowload) {
-            for (let i = startPage; i < startPage + pagesToShow; i++) { item_element(i, ul, PageTracker.page_selection); }
-            //Add a Next pagination item if 
-            if (parseInt(postdata.pages_left) > 5) { createNavItem('Next', ul, PageTracker.page_selection); }
-            nav.appendChild(ul);
-            allPosts.appendChild(nav);
-        }
-
-        const pageLinks = document.querySelectorAll('.page-link');
-
-
-        if (!windowload) {
-
-            if (pagedata.next_set === false && pagedata.previous_set === false) {
-                counter = PageTracker.LastSet(pagedata, postdata, pageLinks);
-                start = PageTracker.FirstSet(pagedata, postdata, pageLinks);
-
-                //Render new set of posts
-                load_newpage(postdata, newset = false);
-
-                for (let i = start; i <= counter; i++) {
-
-                    item_element(i, ul, PageTracker.page_selection);
-                }
-                if (pagedata.page + parseInt(postdata.pages_left) > counter) { createNavItem('Next', ul, PageTracker.page_selection); }
-                nav.appendChild(ul);
-                allPosts.appendChild(nav);
-
-            } else {
-
-                second_counter = PageTracker.LastSet(pagedata, postdata, pageLinks);
-                first_counter = PageTracker.FirstSet(pagedata, postdata, pageLinks);
-
-                load_newpage(postdata, newset = false);
-
-                //Create pagination elements 
-                for (let i = first_counter; i <= second_counter; i++) {
-
-                    item_element(i, ul, PageTracker.page_selection);
-                }
-
-                if (pagedata.page + parseInt(postdata.pages_left) > second_counter) { createNavItem('Next', ul, PageTracker.page_selection); }
-                nav.appendChild(ul);
-                allPosts.appendChild(nav);
-            }
-        }
-    }
-
-    function item_element(i, ul, page_selection) {
+    function item_element(i, ul, following = false) {
         const pageItem = document.createElement('li');
         pageItem.className = 'page-item';
         const pageLink = document.createElement('a');
         pageLink.className = 'page-link .bg-dark';
         pageLink.innerText = i;
-        pageLink.addEventListener("click", page_selection);
+        pageLink.dataset.value = following ? 'Following' : null;
+        pageLink.addEventListener("click", PageTracker.page_selection);
         pageItem.appendChild(pageLink);
         ul.appendChild(pageItem);
         return { pageItem: pageItem };
     }
 
-    function createNavItem(text, ul, clickHandler) {
+    function createNavItem(text, ul) {
         const item = document.createElement('li');
         item.className = 'page-item';
         const link = document.createElement('a');
         link.className = 'page-link .bg-dark';
         link.innerText = text;
-        link.addEventListener("click", clickHandler);
+        link.addEventListener("click", PageTracker.page_selection);
         item.appendChild(link);
         ul.appendChild(item);
     }
@@ -429,7 +297,6 @@
     function follow() {
         var csrfToken = follow_icon.getAttribute('data-csrf-token');
         username = document.getElementById("profile_header").value;
-
         fetch(`/follow/${username}`, {
             method: 'PUT',
             headers: {
@@ -572,28 +439,20 @@
     }
 
     function remove_edit(childcomment = false, id = null, currentprofile = null) {
-
         if (childcomment === true) {
-            
             let previous_post = document.querySelector(`${current_edit.id}`);
-            
-            console.log(previous_post)
             if (previous_post) {
                 // Get all children elements of previous_post
                 let childcomment = previous_post.querySelector('.child-comment');
                 // Check if there are at least two children elements
                 if (childcomment) {
-                    
                     // Get the second-to-last element
                     childcomment.remove();
                 }
                 return;
             }
         }
-
         let previous_post = document.querySelector(`${current_edit.id}`);
-        console.log('hi')
-        console.log(previous_post)
         if (previous_post) {
             previous_post.innerHTML = current_edit.innerhtml;
             if (currentprofile == true || currentprofile == null) {
@@ -683,10 +542,10 @@
 
     function following() {
         fetch(`/following`)
-            .then(response => response.json())                                                                                                                                                                          
+            .then(response => response.json())
             .then(posts => {
-                load_newpage(posts, newset=false);
-                add_pagination(posts, undefined, false);
+                load_newpage(posts, newset = false);
+                add_pagination(posts, undefined, true, followinguser = true);
             })
     }
 
@@ -746,5 +605,6 @@
 
     }
 </script>
-<div class="container-fluid dark-container"></div>
+
+
 {% endblock %}
