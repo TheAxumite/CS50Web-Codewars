@@ -1,19 +1,5 @@
-import {add_pagination} from '.pagination.js'
- // This code sets a listener for when the user navigates back to this page using the browser's back button.
 
-// This code sets a listener for when the DOM is fully loaded.
-document.addEventListener('DOMContentLoaded', function () {
-    window.addEventListener('popstate', function () {
-        location.reload();
-    });
-    // This code sets a listener for when the user clicks the "post-button" element and calls the "create_post" function.
-    document.querySelector('#post-button').addEventListener('click', create_post);
-    // This code sets a listener for when the user clicks on either the "profile" or "allposts" element and calls the "load_posts_profile" function.
-    document.querySelector('#profile').addEventListener('click', () => load_posts_profile('userprofile'));
-    document.querySelector('#allposts').addEventListener('click', () => load_posts_profile('allposts'));
-    document.querySelector('#following').addEventListener('click', () => following());
-    load_posts_profile('allposts');
-});
+
 
 let current_edit = '';
 function CreateHeart(id, like) {

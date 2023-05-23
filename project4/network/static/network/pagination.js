@@ -1,5 +1,5 @@
- //Function responsible for creating and managing pagination functionality for posts.
- function add_pagination(postdata, pagedata = null, windowload = false, following = false) {
+//Function responsible for creating and managing pagination functionality for posts.
+function add_pagination(postdata, pagedata = null, windowload = false, following = false) {
     //clear variable
     current_edit = '';
     // Get the container for all posts and create a new navigation element.
@@ -53,3 +53,77 @@
         }
     }
 }
+
+function item_element(i, ul, following = false) {
+    const pageItem = document.createElement('li');
+    pageItem.className = 'page-item';
+    const pageLink = document.createElement('a');
+    pageLink.className = 'page-link .bg-dark';
+    pageLink.innerText = i;
+    pageLink.dataset.value = following ? 'Following' : null;
+    pageLink.addEventListener("click", PageTracker.page_selection);
+    pageItem.appendChild(pageLink);
+    ul.appendChild(pageItem);
+    return { pageItem: pageItem };
+}
+
+function createNavItem(text, ul) {
+    const item = document.createElement('li');
+    item.className = 'page-item';
+    const link = document.createElement('a');
+    link.className = 'page-link .bg-dark';
+    link.innerText = text;
+    link.addEventListener("click", PageTracker.page_selection);
+    item.appendChild(link);
+    ul.appendChild(item);
+}
+
+class PageTracker {
+    // Method to get the last number of set for pagination.
+    static LastSet(pagedata, postdata, pageLinks) {
+        return (pagedata.next_set === true) ? Math.min(parseInt(pageLinks[pageLinks.length - 2].innerHTML) + 1 + postdata.pages_left,
+            parseInt(pageLinks[pageLinks.length - 2].innerHTML) + 5) : (pagedata.previous_set === true)
+            ? pagedata.page + 4 :
+            pagedata.page <= parseInt(isAlphabet(pageLinks[pageLinks.length - 1].innerHTML[0])
+                ? pageLinks[pageLinks.length - 2].innerHTML
+                : pageLinks[pageLinks.length - 1].innerHTML)
+                ? parseInt(
+                    isAlphabet(pageLinks[pageLinks.length - 1].innerHTML[0])
+                        ? pageLinks[pageLinks.length - 2].innerHTML :
+                        pageLinks[pageLinks.length - 1].innerHTML) :
+                pagedata.page + postdata.pages_left + 1
+    }
+
+    // Method to get the first number of set for pagination.
+    static FirstSet(pagedata, postdata, pageLinks) {
+
+        return (pagedata.next_set === true)
+            ? parseInt(pageLinks[pageLinks.length - 2].innerHTML) + 1
+            : (pagedata.previous_set === true) ? pagedata.page
+                : isAlphabet(pageLinks[0].innerHTML[0]) ? pageLinks[1].innerHTML
+                    : pageLinks[0].innerHTML
+    }
+
+    static page_selection(event) {
+        const page_number = event.target;
+
+        const profileHeader = document.querySelector('#profile_header').innerHTML;
+
+        let load = {
+            'page': (page_number.innerHTML === 'Next') ?
+                parseInt(page_number.parentElement.previousElementSibling.innerText) + 1 :
+                (page_number.innerHTML === 'Previous') ?
+                    parseInt(page_number.parentElement.nextElementSibling.innerText) - 5 :
+                    parseInt(page_number.innerHTML),
+            'next_set': (page_number.innerHTML == 'Next'),
+            'previous_set': (page_number.innerHTML == 'Previous'),
+            'profile': (profileHeader.slice(-8) === "'s Posts") ? profileHeader.slice(0, -8) : profileHeader
+        }
+        const jsonString = JSON.stringify(load);
+        const encodedData = encodeURIComponent(jsonString);
+        fetch(`/load_page/${encodedData}`)
+            .then(response => response.json())
+            .then(page => { add_pagination(page, load, false) })
+    }
+}
+
