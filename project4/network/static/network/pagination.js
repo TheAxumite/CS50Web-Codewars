@@ -106,6 +106,7 @@ class PageTracker {
 
     static page_selection(event) {
         const page_number = event.target;
+        console.log(page_number)
 
         const profileHeader = document.querySelector('#profile_header').innerHTML;
 
