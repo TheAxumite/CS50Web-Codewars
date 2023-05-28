@@ -106,7 +106,7 @@ class PageTracker {
 
     static page_selection(event) {
         const page_number = event.target;
-        console.log(page_number)
+        console.log(page_number.dataset.value)
 
         const profileHeader = document.querySelector('#profile_header').innerHTML;
 
@@ -122,9 +122,11 @@ class PageTracker {
         }
         const jsonString = JSON.stringify(load);
         const encodedData = encodeURIComponent(jsonString);
+
         fetch(`/load_page/${encodedData}`)
             .then(response => response.json())
             .then(page => { add_pagination(page, load, false) })
     }
+
 }
 
