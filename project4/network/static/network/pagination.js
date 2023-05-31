@@ -20,7 +20,7 @@ function add_pagination(postdata, pagedata = null, windowload = false, following
     let pagesToShow = Math.min(postdata.pages_left, 5);
     // If the window has just loaded, create the pagination items and add them to the unordered list.
     if (windowload) {
-        for (let i = startPage; i < startPage + pagesToShow; i++) { item_element(i, ul, following); }
+        for (let i = startPage; i < startPage + pagesToShow; i++) { createNavItem(i, ul, following); }
         //Add a Next pagination item if 
         if (parseInt(postdata.pages_left) > 5) { createNavItem('Next', ul, following); }
         nav.appendChild(ul);
@@ -34,7 +34,7 @@ function add_pagination(postdata, pagedata = null, windowload = false, following
             //Render new set of posts
             load_newpage(postdata, newset = false);
             for (let i = start; i <= counter; i++) {
-                item_element(i, ul);
+                createNavItem(i, ul, following);
             }
             if (pagedata.page + parseInt(postdata.pages_left) > counter) { createNavItem('Next', ul, following); }
             nav.appendChild(ul);
@@ -45,37 +45,13 @@ function add_pagination(postdata, pagedata = null, windowload = false, following
             load_newpage(postdata, newset = false);
             //Create pagination elements 
             for (let i = first_counter; i <= second_counter; i++) {
-                item_element(i, ul);
+                createNavItem(i, ul, following);
             }
             if (pagedata.page + parseInt(postdata.pages_left) > second_counter) { createNavItem('Next', ul, following); }
             nav.appendChild(ul);
             allPosts.appendChild(nav);
         }
     }
-}
-
-function item_element(i, ul, following = false) {
-    const pageItem = document.createElement('li');
-    pageItem.className = 'page-item';
-    const pageLink = document.createElement('a');
-    pageLink.className = 'page-link .bg-dark';
-    pageLink.innerText = i;
-    pageLink.dataset.value = following ? 'Following' : null;
-    pageLink.addEventListener("click", PageTracker.page_selection);
-    pageItem.appendChild(pageLink);
-    ul.appendChild(pageItem);
-    return { pageItem: pageItem };
-}
-
-function createNavItem(text, ul) {
-    const item = document.createElement('li');
-    item.className = 'page-item';
-    const link = document.createElement('a');
-    link.className = 'page-link .bg-dark';
-    link.innerText = text;
-    link.addEventListener("click", PageTracker.page_selection);
-    item.appendChild(link);
-    ul.appendChild(item);
 }
 
 class PageTracker {
@@ -104,12 +80,9 @@ class PageTracker {
                     : pageLinks[0].innerHTML
     }
 
-    static page_selection(event) {
+    static page_selection(event, following) {
         const page_number = event.target;
-        console.log(page_number.dataset.value)
-
         const profileHeader = document.querySelector('#profile_header').innerHTML;
-
         let load = {
             'page': (page_number.innerHTML === 'Next') ?
                 parseInt(page_number.parentElement.previousElementSibling.innerText) + 1 :
@@ -118,14 +91,19 @@ class PageTracker {
                     parseInt(page_number.innerHTML),
             'next_set': (page_number.innerHTML == 'Next'),
             'previous_set': (page_number.innerHTML == 'Previous'),
-            'profile': (profileHeader.slice(-8) === "'s Posts") ? profileHeader.slice(0, -8) : profileHeader
+            'profile': (profileHeader.slice(-8) === "'s Posts") ? profileHeader.slice(0, -8) : profileHeader,
+            'following': following
+
         }
         const jsonString = JSON.stringify(load);
         const encodedData = encodeURIComponent(jsonString);
 
         fetch(`/load_page/${encodedData}`)
             .then(response => response.json())
-            .then(page => { add_pagination(page, load, false) })
+
+            .then(page => {
+                add_pagination(page, load, false, page.following)
+            })
     }
 
 }

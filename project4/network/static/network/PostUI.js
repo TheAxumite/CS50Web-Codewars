@@ -1,3 +1,26 @@
+// Function responsible for loading new posts and updating the UI
+function load_newpage(postdata, newset) {
+
+    // Clear existing posts and pagination elements if 'newset' is not true
+    if (newset != true) {
+        const posts = document.querySelectorAll('.post');
+        posts.forEach(link => { link.remove(); });
+        document.querySelector('[aria-label="Page navigation example"]').remove();
+        const page_selection_element = document.querySelectorAll('.page-item');
+        page_selection_element.forEach(link => { link.remove(); });
+    }
+    // Iterate through the retrieved posts data and create post elements
+    postdata.data.forEach((element, index) => {
+        let line = CreatePostUI(element, postdata.current_user);
+        // Append the newly created post elements to the UI
+        document.querySelector(".all_posts").innerHTML += line.outerHTML;
+        // Update like button icons based on the 'current_user_like' property of each post
+        document.querySelector(`#post_${element.id} path:nth-of-type(1)`).setAttribute('d', element.current_user_like ? 'M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z' : 'm8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z');
+
+    })
+}
+
+
 //TODO: Function  need to be modified for child comments a bit. Remove div and append on the Post Div instead
 function CreatePostUI(element, CurrentUserData, childcomment = false, ChildCommentPage = 1) {
     let dots = document.createElement("span");
@@ -35,7 +58,7 @@ function CreatePostUI(element, CurrentUserData, childcomment = false, ChildComme
     //Replies button for viewing all comments
     let replies = document.createElement('div');
     replies.className = 'replies-div';
-    replies.dataset.value = '0';
+    
     //Create a span element for containing the 'Replies' string
     let replytext = document.createElement('span');
     replytext.className = 'reply-text';
@@ -198,8 +221,8 @@ function remove_edit(childcomment = false, id = null, currentprofile = null) {
     return;
 }
 
- //Function opens the edit button element in this case the element is a 3-dot element
- function open_edit(id, childcomment) {
+//Function opens the edit button element in this case the element is a 3-dot element
+function open_edit(id, childcomment) {
     // Obtain the 3-dot menu element used for accessing the edit options. Its Element ID is linked to the post's primary key (PK) ID in the backend. Initially, the data-value is set to 0, indicating an inactive state.
     const edit_dot = document.getElementById(id);
     // Check if an element with the 'edit_button_div' class already exists
@@ -226,6 +249,14 @@ function remove_edit(childcomment = false, id = null, currentprofile = null) {
     }
     return;
 }
+function showMoreReplies(parentID, nextpage) {
+    let ShowMoreReplies = document.createElement('div');
+    ShowMoreReplies.innerText = 'Show More Replies';
+    ShowMoreReplies.className = 'more-replies';
+    ShowMoreReplies.style.cursor = 'pointer';
+    ShowMoreReplies.setAttribute('onclick', `LoadChildComments(${parentID}, ${nextpage})`);
+    return ShowMoreReplies;
+}
 
 //used to remove strings only and retrieve post number from a post element
 function removeLetters(str) {
@@ -243,17 +274,49 @@ function onInputHandler() {
     autoGrow(this);
 }
 
-   //button hover listner  for Follow button
-   
-   const follow_icon = document.createElement('div');
-   const followuser = document.createElement('button');
-   followuser.innerText = 'Follow';
-   followuser.style.width = '128px';
-   followuser.style.height = '32px';
-   followuser.style.cursor = 'pointer';
-   const csrfToken = document.querySelector('#csrf_token').value;
-   followuser.setAttribute('data-csrf-token', csrfToken);
-   //follow button attribute when clicked runs the follow function
-   followuser.setAttribute('onclick', `follow()`);
-   follow_icon.append(followuser);
-  
+//button hover listner  for Follow button
+
+const follow_icon = document.createElement('div');
+const followuser = document.createElement('button');
+followuser.innerText = 'Follow';
+followuser.style.width = '128px';
+followuser.style.height = '32px';
+followuser.style.cursor = 'pointer';
+const csrfToken = document.querySelector('#csrf_token').value;
+followuser.setAttribute('data-csrf-token', csrfToken);
+//follow button attribute when clicked runs the follow function
+followuser.setAttribute('onclick', `follow()`);
+follow_icon.append(followuser);
+
+
+function changeRepliesfunction(postNumber) {
+    post = document.querySelector(postNumber);
+    replies = post.querySelector('.replies-div');
+    reply = replies.querySelector('.reply-text');
+    reply.setAttribute('onclick', `removeChildComments('${postNumber}')`)
+
+}
+
+function removeChildComments(postNumber) {
+    post = document.querySelector(postNumber);
+    childcomment = post.querySelector('.child-comment-container');
+    childcomment.innerHTML = '';
+    replies = post.querySelector('.replies-div');
+    reply = replies.querySelector('.reply-text');
+    reply.setAttribute('onclick', `LoadChildComments('${removeLetters(postNumber)}', ${1})`);
+
+}
+
+function createNavItem(text, ul, following = false) {
+    const item = document.createElement('li');
+    item.className = 'page-item';
+    const link = document.createElement('a');
+    link.className = 'page-link .bg-dark';
+    link.innerText = text;
+    link.addEventListener("click", function (event) {
+        PageTracker.page_selection(event, following);
+    });
+    item.appendChild(link);
+    ul.appendChild(item);
+
+}

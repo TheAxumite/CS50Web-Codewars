@@ -83,7 +83,7 @@ function following() {
 
             // Load new posts and append pagination elements
             load_newpage(posts, newset = false);
-            add_pagination(posts, undefined, true, followinguser = true);
+            add_pagination(posts, posts, true, followinguser = true);
         })
 }
 
@@ -92,8 +92,7 @@ function LoadChildComments(parentID, ChildCommentPage = 1) {
     // Get the parent comment element
     let parentcomment = document.querySelector(`#post_${parentID}`);
 
-    if (parentcomment.querySelector('.replies-div').dataset.value == "0") {
-        parentcomment.querySelector('.replies-div').dataset.value = "1";
+    
         // Fetch child comments for the parent comment
         fetch('/loadchildcomments', {
             method: 'POST',
@@ -108,7 +107,7 @@ function LoadChildComments(parentID, ChildCommentPage = 1) {
                 const returndata = posts;
                 let childcommentDiv = parentcomment.querySelector('.child-comment-container');
                 //Removes any Child Comments before loading queiried comment in order to avoid loading duplicate comments since comments are appended to DOM before they are submitted  
-                if (childcommentDiv) { childcommentDiv.innerHTML = ''; }
+                
                 posts.ChildCommentData.forEach((element) => {
 
                     // Update the UI with the retrieved child comments
@@ -120,7 +119,6 @@ function LoadChildComments(parentID, ChildCommentPage = 1) {
                         parentcomment.append(childcommentDiv);
                     }
                     else {
-
                         childcommentDiv.append(CreatePostUI(element, posts.current_user, true));
                     }
                     post = childcommentDiv.querySelector(`#post_${element.id}`);
@@ -129,22 +127,14 @@ function LoadChildComments(parentID, ChildCommentPage = 1) {
                 });
                 //add a "Show More Replies" button if there are more comments to load
                 if (returndata.NextPage > 0) {
-                    let ShowMoreReplies = document.createElement('div');
-                    ShowMoreReplies.innerText = 'Show More Replies';
-                    ShowMoreReplies.className = 'more-replies';
-                    ShowMoreReplies.setAttribute('onclick', `LoadChildComments(${parentID}, ${returndata.NextPage}`);
-                    childcommentDiv.append(ShowMoreReplies);
+
+                    childcommentDiv.append(showMoreReplies(parentID, returndata.NextPage));
                 }
             })
 
-    }
-    else {
-
-        parentcomment.querySelector('.child-comment-container').innerHTML = '';
-        parentcomment.querySelector('.replies-div').dataset.value = "0";
-
-    }
-
+    
+    
+    changeRepliesfunction(`#post_${parentID}`)
 }
 
 // Function responsible for posting comments or child comment(comments of posts)
@@ -160,22 +150,22 @@ function PostComment() {
             post: edit_field
         })
     })
-    .then(response => response.json())
-    .then(post => {
-        //figure out the most efficient and aesthesitic way to render in new comments 
-        remove_edit(false, null, post.ChildCommentData.currentprofile);
+        .then(response => response.json())
+        .then(post => {
+            //figure out the most efficient and aesthesitic way to render in new comments 
+            remove_edit(false, null, post.ChildCommentData.currentprofile);
 
-        let current_post_div = document.querySelector(`#post_${removeLetters(post.ChildCommentData.parentcomment)}`);
-        //if childcomment Div already exists you can just append but if it does not create it and add in your new post after searching and populating all other posts. But only perform search if the number of child posts is more than one
-        childcommentDiv = current_post_div.querySelector('.child-comment-container');
-        if (!childcommentDiv) {
-            childcommentDiv = document.createElement('span'); childcommentDiv.className = '.child-comment-container';
-        }
-        childcommentDiv.append(CreatePostUI(post.ChildCommentData, post.current_user, true));
-        current_post_div.append(childcommentDiv);
-        current_post_div.querySelector('.reply-text').innerText = `${post.ChildCommentData.ParentRepliesCount} Replies`;
+            let current_post_div = document.querySelector(`#post_${removeLetters(post.ChildCommentData.parentcomment)}`);
+            //if childcomment Div already exists you can just append but if it does not create it and add in your new post after searching and populating all other posts. But only perform search if the number of child posts is more than one
+            childcommentDiv = current_post_div.querySelector('.child-comment-container');
+            if (!childcommentDiv) {
+                childcommentDiv = document.createElement('span'); childcommentDiv.className = '.child-comment-container';
+            }
+            childcommentDiv.append(CreatePostUI(post.ChildCommentData, post.current_user, true));
+            current_post_div.append(childcommentDiv);
+            current_post_div.querySelector('.reply-text').innerText = `${post.ChildCommentData.ParentRepliesCount} Replies`;
 
-    });
+        });
 }
 
 
@@ -190,74 +180,74 @@ function editComment() {
             post: edit_field
         })
     })
-    .then(response => response.json())
-    .then(post => {
+        .then(response => response.json())
+        .then(post => {
             //Removes the Edit Textfield element
             remove_edit(false, null);
             let current_post_div = document.querySelector(`${current_edit.id}`);
             current_post_div.querySelector('.post_string').innerText = post.update;
             current_edit = { 'id': `#post_${removeLetters(current_edit.id)}`, 'innerhtml': current_post_div.innerHTML };
             current_post_div.querySelector('.reply-text').innerText = `${post.ChildCommentData.ParentRepliesCount} Replies`;
-    })
+        })
 }
-        
-    function follow() {
-        var csrfToken = follow_icon.getAttribute('data-csrf-token');
-        username = document.getElementById("profile_header").value;
-        fetch(`/follow/${username}`, {
-            method: 'PUT',
-            headers: {
-                'X-CSRFToken': csrfToken
-            },
-            body: JSON.stringify({
-                id: username
-            })
+
+function follow() {
+    var csrfToken = follow_icon.getAttribute('data-csrf-token');
+    username = document.getElementById("profile_header").value;
+    fetch(`/follow/${username}`, {
+        method: 'PUT',
+        headers: {
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({
+            id: username
         })
-            .then(response => response.json())
-            .then(updated_counter => {
-                if (updated_counter.followers != true) {
-                    document.querySelector(`#followers-column`).innerHTML = updated_counter.followers;
-                }
-
-
-            })
-    }
-
-    function create_post() {
-        var comment = document.querySelector('#compose-comment').value;
-
-        fetch('/create_post', {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': csrfToken
-            },
-            body: JSON.stringify({
-                comment: comment
-            })
-        })
-            .then(response => response.json())
-            .then(updatepost => {
-                document.querySelector('#compose-comment').value = '';
-                load_newpage(updatepost, false);
-                add_pagination(updatepost, undefined, true);
-            })
-
-
-    }
-
-    function like_post(id) {
-        fetch(`/like_post/${id}`, {
-            method: 'PUT',
-            headers: {
-                'X-CSRFToken': csrfToken
+    })
+        .then(response => response.json())
+        .then(updated_counter => {
+            if (updated_counter.followers != true) {
+                document.querySelector(`#followers-column`).innerHTML = updated_counter.followers;
             }
+
+
         })
-            .then(response => response.json())
-            .then(like => {
-                let counter_element = document.querySelector(`#post_${id}`);
+}
 
-                counter_element.querySelector(`.like-counter`).innerText = like.Newpost.like_count;
-                document.querySelector(`#post_${id} path:nth-of-type(1)`).setAttribute('d', like.Newpost.liked ? 'm8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z' : 'M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z');
-            })
+function create_post() {
+    var comment = document.querySelector('#compose-comment').value;
 
-    }
+    fetch('/create_post', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({
+            comment: comment
+        })
+    })
+        .then(response => response.json())
+        .then(updatepost => {
+            document.querySelector('#compose-comment').value = '';
+            load_newpage(updatepost, false);
+            add_pagination(updatepost, undefined, true);
+        })
+
+
+}
+
+function like_post(id) {
+    fetch(`/like_post/${id}`, {
+        method: 'PUT',
+        headers: {
+            'X-CSRFToken': csrfToken
+        }
+    })
+        .then(response => response.json())
+        .then(like => {
+            let counter_element = document.querySelector(`#post_${id}`);
+
+            counter_element.querySelector(`.like-counter`).innerText = like.Newpost.like_count;
+            document.querySelector(`#post_${id} path:nth-of-type(1)`).setAttribute('d', like.Newpost.liked ? 'm8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z' : 'M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z');
+        })
+
+}
