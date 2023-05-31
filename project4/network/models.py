@@ -34,9 +34,6 @@ class User(AbstractUser):
         return {"followers": count.followers.count(), "following": count.following.count()}
 
 
-
-
-
 class Posts(models.Model):
     user = models.ForeignKey(
         "User", on_delete=models.CASCADE, related_name="poster")
@@ -95,26 +92,30 @@ class Posts(models.Model):
             return f"Validation error: {e}"
         except IntegrityError as e:
             return f"Integrity error: {e}"
-        
+
     @classmethod
     def following_list(cls, currentuser):
         # Get the list of usernames that the current user is following
+        """The .values_list() method is a query method available in Django, a popular Python web framework.
+        It is used to retrieve specific field values from a queryset, returning a list of tuples or flat values, depending on the parameters provided.
+        The basic syntax for using .values_list() in Django is as follows: queryset.values_list(*fields, flat=False) 
+        """
         user = User.objects.get(
             username=currentuser).list_of_following.values_list('pk', flat=True)
         # Old Code for reference
-        """query = Q()  # Initialize an empty Q object
+        """query = Q()  # Initialize an empty Q objectz
         # Add conditions for each username in the following list
         for username in following_usernames :
-            # Combine Q objects using |= (in-place bitwise OR assignment)
+        # Combine Q objects using |= (in-place bitwise OR assignment)
             query |= Q(user=username)
         print(query)
         # Use the query Q object to filter users
         following_users = Posts.objects.filter(user = query).order_by("-timestamp")"""
-
         """The __in lookup in Django is equivalent to the SQL IN clause. When used in a Django ORM query, 
         it generates SQL that matches any object where the specified field's value is in the provided list."""
-        return cls.objects.filter(user__in=user).order_by("-timestamp")
 
+        
+        return cls.objects.filter(user__in=user, originalpost=True).order_by("-timestamp")
 
     def serialize(self, user):
         if user in self.postlikes.all():
@@ -132,6 +133,3 @@ class Posts(models.Model):
             "ParentRepliesCount": Posts.objects.filter(parentcomment=self.parentcomment).order_by("-timestamp").count(),
             'replies': self.childcomments.count(),
             'currentprofile': True if self.user.username == user else False}
-
-
-
