@@ -96,7 +96,7 @@ class Posts(models.Model):
     @classmethod
     def following_list(cls, currentuser):
         # Get the list of usernames that the current user is following
-        """The .values_list() method is a query method available in Django, a popular Python web framework.
+        """The .values_list() method is a query method available in Django.
         It is used to retrieve specific field values from a queryset, returning a list of tuples or flat values, depending on the parameters provided.
         The basic syntax for using .values_list() in Django is as follows: queryset.values_list(*fields, flat=False) 
         """
@@ -114,7 +114,7 @@ class Posts(models.Model):
         """The __in lookup in Django is equivalent to the SQL IN clause. When used in a Django ORM query, 
         it generates SQL that matches any object where the specified field's value is in the provided list."""
 
-        
+
         return cls.objects.filter(user__in=user, originalpost=True).order_by("-timestamp")
 
     def serialize(self, user):

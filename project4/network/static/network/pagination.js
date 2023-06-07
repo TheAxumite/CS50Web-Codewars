@@ -42,7 +42,9 @@ function add_pagination(postdata, pagedata = null, windowload = false, following
         } else {
             second_counter = PageTracker.LastSet(pagedata, postdata, pageLinks);
             first_counter = PageTracker.FirstSet(pagedata, postdata, pageLinks);
+
             load_newpage(postdata, newset = false);
+            
             //Create pagination elements 
             for (let i = first_counter; i <= second_counter; i++) {
                 createNavItem(i, ul, following);

@@ -125,9 +125,11 @@ function LoadChildComments(parentID, ChildCommentPage = 1) {
                     change = post.querySelector(`.like_button`);
 
                 });
+                if(childcommentDiv.querySelector('.more-replies')){
+                    childcommentDiv.querySelector('.more-replies').remove();
+                }
                 //add a "Show More Replies" button if there are more comments to load
                 if (returndata.NextPage > 0) {
-
                     childcommentDiv.append(showMoreReplies(parentID, returndata.NextPage));
                 }
             })

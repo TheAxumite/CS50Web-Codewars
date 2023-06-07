@@ -9,7 +9,7 @@ from django.core.paginator import Paginator
 from .models import *
 from django.db.models import Q
 
-
+@login_required
 def index(request):
     return render(request, "network/index.html")
 
@@ -25,7 +25,7 @@ def login_view(request):
         # Check if authentication successful
         if user is not None:
             login(request, user)
-            return HttpResponseRedirect(reverse("index"))
+            return render(request, "network/index.html")
         else:
             return render(request, "network/login.html", {
                 "message": "Invalid username and/or password."
@@ -36,7 +36,7 @@ def login_view(request):
 
 def logout_view(request):
     logout(request)
-    return HttpResponseRedirect(reverse("index"))
+    return HttpResponseRedirect(reverse("login"))
 
 
 def register(request):
