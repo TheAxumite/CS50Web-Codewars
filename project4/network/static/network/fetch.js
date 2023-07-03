@@ -15,7 +15,8 @@ function load_posts_profile(load) {
             // based on the retrieved posts data
             var profile = document.getElementById("profile_header");
             profile.style.display = 'inline-block';
-            var useraccount = document.getElementById("username");
+            var useraccount = posts.current_user
+            console.log(useraccount)
 
             // Get a reference to the 'Followers' section by its id
             var followersSection = document.getElementById("followers-column");
@@ -26,7 +27,7 @@ function load_posts_profile(load) {
             followingSection.innerHTML = posts.count.following;
 
             const notUserProfile = posts.isCurrentProfile;
-
+            console.log(load)
             document.querySelector('#followingsection').style.display = posts.isCurrentProfile ? 'none' : 'block';
             document.querySelector('#new_posts').style.display = notUserProfile ? 'none' : 'block';
 
@@ -34,13 +35,15 @@ function load_posts_profile(load) {
                 document.querySelector("#profile_header").innerText = `${load}'s Posts`;
                 document.querySelector("#profile_header").value = load;
 
-                if (load != useraccount.innerHTML) {
+                if (load != useraccount) {
                     profile.insertAdjacentElement('afterend', follow_icon);
                 }
             } else {
                 document.querySelector("#profile_header").innerText = "All Posts";
                 const follow_icon = document.querySelector('.follow_icon');
-                if (follow_icon) { follow_icon.remove(); }
+                console.log(follow_icon)
+
+                if (follow_icon != null) { follow_icon.remove(); console.log('yes')}
             }
             // Load new posts
             load_newpage(posts, true);
@@ -194,8 +197,9 @@ function editComment() {
 }
 
 function follow() {
-    var csrfToken = follow_icon.getAttribute('data-csrf-token');
+    
     username = document.getElementById("profile_header").value;
+    console.log(username);
     fetch(`/follow/${username}`, {
         method: 'PUT',
         headers: {

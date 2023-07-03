@@ -16,12 +16,16 @@ class User(AbstractUser):
     def follow_unfollow(cls, target, currentprofile):
         user = User.objects.get(username=currentprofile)
         target_profile = User.objects.get(username=target)
-
-        if target_profile.username in user.followers.all():
-            return {"followers": True}
+        if target_profile != currentprofile:
+            print(target_profile)
+            print(currentprofile)
+            if target_profile.username in user.followers.all():
+                return {"followers": True}
+            else:
+                user.following.add(target_profile)
+                target_profile.followers.add(user)
+                return {"followers": user.followers.count()}
         else:
-            user.following.add(target_profile)
-            target_profile.followers.add(user)
             return {"followers": user.followers.count()}
 
     def check_following(self, profile_id):

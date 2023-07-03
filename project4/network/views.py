@@ -139,7 +139,7 @@ def load_page(request, load):
     if load_dict['following']:
 
         paginator = Paginator(Posts.following_list(request.user).order_by("-timestamp"), 10)
-        print(int(paginator.num_pages))
+       
     return JsonResponse({'data': [post.serialize(request.user) for post in paginator.page(load_dict['page']).object_list],
                         'pages_left': int(paginator.num_pages) - (load_dict['page']),
                          'following': load_dict['following'],
@@ -172,8 +172,6 @@ def following_post(request):
 def post_comment(request):
     if request.method == 'POST':
         data = json.loads(request.body)
-        print(data.get("post"))
-        print(data.get("post_id"))
         return JsonResponse({'ChildCommentData': Posts.addComment(data.get("post"), data.get("post_id"), request.user).serialize(request.user), 'current_user': str(request.user)}, safe=False)
 
 

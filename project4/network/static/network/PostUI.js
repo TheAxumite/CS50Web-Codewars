@@ -277,6 +277,7 @@ function onInputHandler() {
 //button hover listner  for Follow button
 
 const follow_icon = document.createElement('div');
+follow_icon.className = 'follow_icon';
 const followuser = document.createElement('button');
 followuser.innerText = 'Follow';
 followuser.style.width = '128px';

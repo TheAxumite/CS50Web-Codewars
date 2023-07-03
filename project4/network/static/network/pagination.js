@@ -29,8 +29,8 @@ function add_pagination(postdata, pagedata = null, windowload = false, following
     const pageLinks = document.querySelectorAll('.page-link');
     if (!windowload) {
         if (pagedata.next_set === false && pagedata.previous_set === false) {
-            counter = PageTracker.LastSet(pagedata, postdata, pageLinks);
-            start = PageTracker.FirstSet(pagedata, postdata, pageLinks);
+            const counter = PageTracker.LastSet(pagedata, postdata, pageLinks);
+            const start = PageTracker.FirstSet(pagedata, postdata, pageLinks);
             //Render new set of posts
             load_newpage(postdata, newset = false);
             for (let i = start; i <= counter; i++) {
@@ -40,8 +40,8 @@ function add_pagination(postdata, pagedata = null, windowload = false, following
             nav.appendChild(ul);
             allPosts.appendChild(nav);
         } else {
-            second_counter = PageTracker.LastSet(pagedata, postdata, pageLinks);
-            first_counter = PageTracker.FirstSet(pagedata, postdata, pageLinks);
+            const second_counter = PageTracker.LastSet(pagedata, postdata, pageLinks);
+            const first_counter = PageTracker.FirstSet(pagedata, postdata, pageLinks);
 
             load_newpage(postdata, newset = false);
             
@@ -59,16 +59,11 @@ function add_pagination(postdata, pagedata = null, windowload = false, following
 class PageTracker {
     // Method to get the last number of set for pagination.
     static LastSet(pagedata, postdata, pageLinks) {
-        return (pagedata.next_set === true) ? Math.min(parseInt(pageLinks[pageLinks.length - 2].innerHTML) + 1 + postdata.pages_left,
-            parseInt(pageLinks[pageLinks.length - 2].innerHTML) + 5) : (pagedata.previous_set === true)
-            ? pagedata.page + 4 :
-            pagedata.page <= parseInt(isAlphabet(pageLinks[pageLinks.length - 1].innerHTML[0])
-                ? pageLinks[pageLinks.length - 2].innerHTML
-                : pageLinks[pageLinks.length - 1].innerHTML)
-                ? parseInt(
-                    isAlphabet(pageLinks[pageLinks.length - 1].innerHTML[0])
-                        ? pageLinks[pageLinks.length - 2].innerHTML :
-                        pageLinks[pageLinks.length - 1].innerHTML) :
+        return (pagedata.next_set === true) ? Math.min(parseInt(pageLinks[pageLinks.length - 2].innerHTML) + 1 + postdata.pages_left, parseInt(pageLinks[pageLinks.length - 2].innerHTML) + 5) : 
+                (pagedata.previous_set === true) ? pagedata.page + 4 :
+                pagedata.page <= parseInt(isAlphabet(pageLinks[pageLinks.length - 1].innerHTML[0]) ? pageLinks[pageLinks.length - 2].innerHTML: 
+                pageLinks[pageLinks.length - 1].innerHTML) ? parseInt(isAlphabet(pageLinks[pageLinks.length - 1].innerHTML[0]) ? pageLinks[pageLinks.length - 2].innerHTML :
+                pageLinks[pageLinks.length - 1].innerHTML) :
                 pagedata.page + postdata.pages_left + 1
     }
 
