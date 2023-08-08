@@ -4,6 +4,7 @@ import json
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db.utils import IntegrityError
 from django.db.models import Q
+import uuid
 
 
 class User(AbstractUser):
@@ -106,6 +107,7 @@ class Posts(models.Model):
         """
         user = User.objects.get(
             username=currentuser).list_of_following.values_list('pk', flat=True)
+        print(user)
         # Old Code for reference
         """query = Q()  # Initialize an empty Q objectz
         # Add conditions for each username in the following list
@@ -117,7 +119,6 @@ class Posts(models.Model):
         following_users = Posts.objects.filter(user = query).order_by("-timestamp")"""
         """The __in lookup in Django is equivalent to the SQL IN clause. When used in a Django ORM query, 
         it generates SQL that matches any object where the specified field's value is in the provided list."""
-
 
         return cls.objects.filter(user__in=user, originalpost=True).order_by("-timestamp")
 
@@ -137,3 +138,37 @@ class Posts(models.Model):
             "ParentRepliesCount": Posts.objects.filter(parentcomment=self.parentcomment).order_by("-timestamp").count(),
             'replies': self.childcomments.count(),
             'currentprofile': True if self.user.username == user else False}
+
+
+@classmethod
+class channels(models.Model):
+    channelReciever = models.ForeignKey('User', on_delete=models.CASCADE, related_name= "reciever")
+    channelName = models.TextField()
+
+@classmethod
+class messages(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    message = models.TextField()
+    sender = models.ForeignKey(
+        "User", on_delete=models.CASCADE, related_name="poster")
+    reciever = models.ForeignKey(
+        "User", on_delete=models.CASCADE, related_name="reciever")
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    @classmethod
+    def addMessage(cls, message, sender, reciever):
+        try:
+            sender = Posts.objects.get(pk=sender)
+            reciever = Posts.objects.get(pk=reciever)
+        except ObjectDoesNotExist:
+            return "Post has been deleted"
+        except ValidationError as e:
+            return f"Validation error: {e}"
+        except IntegrityError as e:
+            return f"Integrity error: {e}"
+        try:
+            cls.objects.create(sender=sender, reciever=reciever)
+        except ValidationError as e:
+                return f"Validation error: {e}"
+        except IntegrityError as e:
+                return f"Integrity error: {e}"

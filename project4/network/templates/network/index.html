@@ -9,21 +9,22 @@
 
 <div class='row justify-content-center'>
     <div class="col-md-6 text-center">
-    <h1 id="profile_header">All Posts</h1>
+        <h1 id="profile_header">All Posts</h1>
 
-<input type="hidden" id="csrf_token_2" value="{{ csrf_token }}">
-<div id="new_posts">
-    <div id="compose-post">
-        <div class="row">
-            <h3>New Post</h3>
-            <textarea class="form-control" id="compose-comment"></textarea>
-            <div class="col-xs-6">
-                <button type="submit" id="post-button" class="btn btn-primary "> <i class="bi bi-send-plus"></i> Post
-                </button>
+        <input type="hidden" id="csrf_token_2" value="{{ csrf_token }}">
+        <div id="new_posts">
+            <div id="compose-post">
+                <div class="row">
+                    <h3>New Post</h3>
+                    <textarea class="form-control" id="compose-comment"></textarea>
+                    <div class="col-xs-6">
+                        <button type="submit" id="post-button" class="btn btn-primary "> <i class="bi bi-send-plus"></i>
+                            Post
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-</div>
         {% csrf_token %}
     </div>
 </div>
@@ -40,39 +41,80 @@
 <input type="hidden" id="csrf_token" value="{{ csrf_token }}">
 
 
+<h1>WebSocket Test</h1>
 
-{% block script %}
-<script  src="{% static 'network/PostUI.js' %}"></script> 
-<script  src="{% static 'network/fetch.js' %}"></script> 
-<script  src="{% static 'network/pagination.js' %}"></script> 
-{% endblock %}
-
-<script>
-
-    // This code sets a listener for when the user navigates back to this page using the browser's back button.
-    window.addEventListener('popstate', function () {
-        location.reload();
-    });
-    // This code sets a listener for when the DOM is fully loaded.
-    document.addEventListener('DOMContentLoaded', function () {
-       
-        // This code sets a listener for when the user clicks the "post-button" element and calls the "create_post" function.
-        document.querySelector('#post-button').addEventListener('click', create_post);
-        // This code sets a listener for when the user clicks on either the "profile" or "allposts" element and calls the "load_posts_profile" function.
-        document.querySelector('#profile').addEventListener('click', () => load_posts_profile('userprofile'));
-        document.querySelector('#allposts').addEventListener('click', () => load_posts_profile('allposts'));
-        document.querySelector('#following').addEventListener('click', () => following());
-        load_posts_profile('allposts');
-    });
-
-    let current_edit = '';
-    let previous = 0;
+<button onclick="startWebSocket()">Start WebSocket</button>
+<textarea class="form-control" id="message-comment"></textarea>
+<button type="submit" id="message" class="btn btn-primary "> <i class="bi bi-send-plus"></i> submit
+</button>
+<span class="form-control" id="message-collector"></span>
+<div class="col-xs-6">
     
-    function isAlphabet(char) {
-        return /^[a-zA-Z]$/.test(char);
-    }
 
-</script>
+    {% block script %}
+    <script src="{% static 'network/PostUI.js' %}"></script>
+    <script src="{% static 'network/fetch.js' %}"></script>
+    <script src="{% static 'network/pagination.js' %}"></script>
+    {% endblock %}
+
+    <script>
+
+        // This code sets a listener for when the user navigates back to this page using the browser's back button.
+        window.addEventListener('popstate', function () {
+            location.reload();
+        });
+        // This code sets a listener for when the DOM is fully loaded.
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // This code sets a listener for when the user clicks the "post-button" element and calls the "create_post" function.
+            document.querySelector('#post-button').addEventListener('click', create_post);
+            // This code sets a listener for when the user clicks on either the "profile" or "allposts" element and calls the "load_posts_profile" function.
+            document.querySelector('#profile').addEventListener('click', () => load_posts_profile('userprofile'));
+            document.querySelector('#allposts').addEventListener('click', () => load_posts_profile('allposts'));
+            document.querySelector('#following').addEventListener('click', () => following());
+            load_posts_profile('allposts');
+        });
+
+        let current_edit = '';
+        let previous = 0;
+
+        function isAlphabet(char) {
+            return /^[a-zA-Z]$/.test(char);
+        }
+
+        function startWebSocket() {
+            const socket = new WebSocket('ws://127.0.0.1:8000/ws/')
+
+            //array buffer binarytype is potentionally more efficent
+            // socket.binaryType = 'arraybuffer';
 
 
-{% endblock %}
+
+            socket.onopen = function (e) {
+                alert("[open] Connection established");
+            };
+
+            socket.onmessage = function (event) {
+                var text = document.getElementById('message-collector')
+                let message = JSON.parse(event.data)
+                text.innerHTML += `<br> ${message.message}`;
+
+
+
+            };
+            var text = document.getElementById('message-comment')
+            document.querySelector('#message').addEventListener('click', () => {
+                socket.send(text.value),
+                text.value = ""
+            })
+
+
+
+            socket.onerror = function (error) {
+                alert(`[error] ${error.message}`);
+            };
+        }
+    </script>
+
+
+    {% endblock %}
