@@ -9,6 +9,7 @@ from django.core.paginator import Paginator
 from .models import *
 from django.db.models import Q
 
+
 @login_required
 def index(request):
     return render(request, "network/index.html")
@@ -21,10 +22,12 @@ def login_view(request):
         username = request.POST["username"]
         password = request.POST["password"]
         user = authenticate(request, username=username, password=password)
+      
 
         # Check if authentication successful
         if user is not None:
             login(request, user)
+            request.session['user'] = user
             return render(request, "network/index.html")
         else:
             return render(request, "network/login.html", {
@@ -86,6 +89,7 @@ def load_posts(request, load):
         'isCurrentProfile': (True if load != 'allposts' else False),
         'current_user': str(request.user),
         'pages_left': paginator.num_pages}
+    
     return JsonResponse(data, safe=False)
 
 
@@ -183,3 +187,4 @@ def LoadChildComments(request):
     return JsonResponse({'ChildCommentData': [post.serialize(request.user) for post in paginator.page(int(data.get('page'))).object_list],
                          'NextPage': int(data.get('page')) + 1 if int(data.get('page')) + 1 <= paginator.num_pages else 0,
                          'current_user': str(request.user)}, safe=False)
+
