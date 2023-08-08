@@ -10,6 +10,7 @@ from .models import *
 from django.db.models import Q
 
 
+@login_required
 def index(request):
     return render(request, "network/index.html")
 
@@ -21,11 +22,13 @@ def login_view(request):
         username = request.POST["username"]
         password = request.POST["password"]
         user = authenticate(request, username=username, password=password)
+      
 
         # Check if authentication successful
         if user is not None:
             login(request, user)
-            return HttpResponseRedirect(reverse("index"))
+            request.session['user'] = user
+            return render(request, "network/index.html")
         else:
             return render(request, "network/login.html", {
                 "message": "Invalid username and/or password."
@@ -36,7 +39,7 @@ def login_view(request):
 
 def logout_view(request):
     logout(request)
-    return HttpResponseRedirect(reverse("index"))
+    return HttpResponseRedirect(reverse("login"))
 
 
 def register(request):
@@ -68,7 +71,7 @@ def register(request):
 
 @login_required
 def load_posts(request, load):
-    print(load)
+
     if load != "allposts":
 
         queryset = Posts.objects.filter(user=User.objects.get(
@@ -86,6 +89,7 @@ def load_posts(request, load):
         'isCurrentProfile': (True if load != 'allposts' else False),
         'current_user': str(request.user),
         'pages_left': paginator.num_pages}
+    
     return JsonResponse(data, safe=False)
 
 
@@ -136,9 +140,13 @@ def load_page(request, load):
     else:
         paginator = Paginator(Posts.objects.filter(user=User.objects.get(
             username=load_dict['profile']), originalpost=True).order_by("-timestamp"), 10)
+    if load_dict['following']:
 
+        paginator = Paginator(Posts.following_list(request.user).order_by("-timestamp"), 10)
+       
     return JsonResponse({'data': [post.serialize(request.user) for post in paginator.page(load_dict['page']).object_list],
                         'pages_left': int(paginator.num_pages) - (load_dict['page']),
+                         'following': load_dict['following'],
                          'current_user': str(request.user)}, safe=False)
 
 
@@ -152,14 +160,15 @@ def edit_post(request):
 @login_required
 def following_post(request):
 
-    paginator = Paginator(Posts.following_list(request.user), 10)
+    paginator = Paginator(Posts.following_list(
+        request.user).order_by("-timestamp"), 10)
 
     data_return = {
         'data': [post.serialize(request.user) for post in paginator.page(1).object_list],
         'count': User.count_followers_and_following(request.user),
         'isCurrentProfile': False,
         'current_user': str(request.user),
-        'pages_left': paginator.num_pages}
+        'pages_left': int(paginator.num_pages)}
     return JsonResponse(data_return, safe=False)
 
 
@@ -167,8 +176,6 @@ def following_post(request):
 def post_comment(request):
     if request.method == 'POST':
         data = json.loads(request.body)
-        print(data.get("post"))
-        print(data.get("post_id"))
         return JsonResponse({'ChildCommentData': Posts.addComment(data.get("post"), data.get("post_id"), request.user).serialize(request.user), 'current_user': str(request.user)}, safe=False)
 
 
@@ -180,3 +187,4 @@ def LoadChildComments(request):
     return JsonResponse({'ChildCommentData': [post.serialize(request.user) for post in paginator.page(int(data.get('page'))).object_list],
                          'NextPage': int(data.get('page')) + 1 if int(data.get('page')) + 1 <= paginator.num_pages else 0,
                          'current_user': str(request.user)}, safe=False)
+
