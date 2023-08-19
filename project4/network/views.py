@@ -22,7 +22,6 @@ def login_view(request):
         username = request.POST["username"]
         password = request.POST["password"]
         user = authenticate(request, username=username, password=password)
-      
 
         # Check if authentication successful
         if user is not None:
@@ -89,7 +88,7 @@ def load_posts(request, load):
         'isCurrentProfile': (True if load != 'allposts' else False),
         'current_user': str(request.user),
         'pages_left': paginator.num_pages}
-    
+
     return JsonResponse(data, safe=False)
 
 
@@ -142,8 +141,9 @@ def load_page(request, load):
             username=load_dict['profile']), originalpost=True).order_by("-timestamp"), 10)
     if load_dict['following']:
 
-        paginator = Paginator(Posts.following_list(request.user).order_by("-timestamp"), 10)
-       
+        paginator = Paginator(Posts.following_list(
+            request.user).order_by("-timestamp"), 10)
+
     return JsonResponse({'data': [post.serialize(request.user) for post in paginator.page(load_dict['page']).object_list],
                         'pages_left': int(paginator.num_pages) - (load_dict['page']),
                          'following': load_dict['following'],
@@ -187,4 +187,3 @@ def LoadChildComments(request):
     return JsonResponse({'ChildCommentData': [post.serialize(request.user) for post in paginator.page(int(data.get('page'))).object_list],
                          'NextPage': int(data.get('page')) + 1 if int(data.get('page')) + 1 <= paginator.num_pages else 0,
                          'current_user': str(request.user)}, safe=False)
-

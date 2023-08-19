@@ -150,9 +150,9 @@ class messages(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     message = models.TextField()
     sender = models.ForeignKey(
-        "User", on_delete=models.CASCADE, related_name="poster")
+        "User", on_delete=models.CASCADE, related_name="messagescriber")
     reciever = models.ForeignKey(
-        "User", on_delete=models.CASCADE, related_name="reciever")
+        "User", on_delete=models.CASCADE, related_name="messagereciever")
     timestamp = models.DateTimeField(auto_now_add=True)
 
     @classmethod
